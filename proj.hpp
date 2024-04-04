@@ -22,7 +22,8 @@ struct InstructionQueue{
 };
 
 struct Pipeline{
-
+    
+    struct InstructionQueue *stall_queue;
     struct InstructionQueue *IF_queue;
     struct InstructionQueue *ID_queue;
     struct InstructionQueue *EX_queue;
