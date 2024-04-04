@@ -40,11 +40,12 @@ struct Pipeline *InitalizePipeline(){
     return pipeline;
 }
 
-struct Instruction *NewInstruction(unsigned long address, int type,
+struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type,
  unsigned long dependency1, unsigned long dependency2) {
 
     struct Instruction *newInstruction = new struct Instruction;
     newInstruction->instruction_address = address;
+    newInstruction->cycle_inserted = cycle_count;
     newInstruction->instructionType = type;
     newInstruction->instruction_dependency[0] = dependency1;
     newInstruction->instruction_dependency[1] = dependency2;
@@ -72,7 +73,7 @@ void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction 
     InstructionQueue->count++;
 }
 
-unsigned long Delete_Instruction(struct InstructionQueue *InstructionQueue) {
+unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue) {
 
     struct Instruction *toDelete = InstructionQueue->head;
     InstructionQueue->head = InstructionQueue->head->next;
@@ -93,18 +94,42 @@ unsigned long Delete_Instruction(struct InstructionQueue *InstructionQueue) {
     return address;
 }
 
+void Delete_Instruction(struct InstructionQueue *InstructionQueue){
+
+    struct Instruction *toDelete = InstructionQueue->head;
+    InstructionQueue->head = InstructionQueue->head->next;
+
+    if (InstructionQueue->head != NULL) {
+
+        InstructionQueue->head->prev = NULL;
+    } else {
+
+        InstructionQueue->tail = NULL;
+    }
+
+    delete toDelete;
+    InstructionQueue->count--;
+}
+
 void ProcessWB(struct Pipeline *Pipeline, int width){
 
     while (Pipeline->WB_queue->count != 0) {
 
-        Pipeline->latest_instruction_address_finished = Delete_Instruction(Pipeline->WB_queue);
+        Pipeline->latest_instruction_address_finished = Delete_WB_Instruction(Pipeline->WB_queue);
         Pipeline->finish_count++;
     }
 }
 
 void ProcessMEM(struct Pipeline *Pipeline, int width){
 
+    while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) {
 
+        Insert_Queue(Pipeline->WB_queue, NewInstruction(Pipeline->MEM_queue->head->instruction_address, 
+        Pipeline->MEM_queue->head->cycle_inserted, Pipeline->MEM_queue->head->instructionType,
+         Pipeline->MEM_queue->head->instruction_dependency[0], Pipeline->MEM_queue->head->instruction_dependency[1]));
+        
+        Delete_Instruction(Pipeline->MEM_queue);
+    }
 }
 
 void ProcessEX(struct Pipeline *Pipeline, int width){
@@ -122,7 +147,13 @@ void ProcessIF(struct Pipeline *Pipeline, int width){
 
 }
 
-int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count){
+int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
+
+    ProcessWB(Pipeline, width);
+    ProcessMEM(Pipeline, width);
+    ProcessEX(Pipeline, width);
+    ProcessID(Pipeline, width);
+    ProcessIF(Pipeline, width);
 
     return cycle_count++;
     
