@@ -39,7 +39,53 @@ struct Pipeline *InitalizePipeline(){
     return pipeline;
 }
 
-struct Instruction *NewInstruction(){
+struct Instruction *NewInstruction(unsigned long address, int type,
+ unsigned long dependency1, unsigned long dependency2) {
+
+    struct Instruction *newInstruction = new struct Instruction;
+    newInstruction->instruction_address = address;
+    newInstruction->instructionType = type;
+    newInstruction->instruction_dependency[0] = dependency1;
+    newInstruction->instruction_dependency[1] = dependency2;
+    newInstruction->next = NULL;
+    newInstruction->prev = NULL;
+
+    return newInstruction;
+
+ }
+
+void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
+
+    if (InstructionQueue->head == nullptr) {
+
+        InstructionQueue->head = Instruction;
+        InstructionQueue->tail = Instruction;
+        
+    } else {
+       
+        InstructionQueue->tail->next = Instruction;
+        Instruction->prev = InstructionQueue->tail;
+        InstructionQueue->tail = Instruction;
+    }
+}
+
+void ProcessWB(struct Pipeline *Pipeline, int width){
+
+
+}
+void ProcessMEM(struct Pipeline *Pipeline, int width){
+
+
+}
+void ProcessEX(struct Pipeline *Pipeline, int width){
+
+
+}
+void ProcessID(struct Pipeline *Pipeline, int width){
+
+
+}
+void ProcessIF(struct Pipeline *Pipeline, int width){
 
 
 }

@@ -7,7 +7,8 @@
 
 struct Instruction{
 
-    enum class instructionType {IF, ID, EX, MEM, WB};
+    unsigned long instruction_address;
+    int instructionType; // 1 Integer, 2 Floating, 3 branch, 4 load, 5 store
     unsigned long instruction_dependency[2]; // 0 if none, else the instruction number it is depended on.
     struct Instruction *next;
     struct Instruction *prev;
@@ -36,6 +37,12 @@ struct Pipeline{
 };
 
 struct Pipeline *InitalizePipeline();
-struct Instruction *NewInstruction();
+struct Instruction *NewInstruction(unsigned long address, int type, unsigned long dependency1, unsigned long dependency2);
+void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
+void ProcessWB(struct Pipeline *Pipeline, int width);
+void ProcessMEM(struct Pipeline *Pipeline, int width);
+void ProcessEX(struct Pipeline *Pipeline, int width);
+void ProcessID(struct Pipeline *Pipeline, int width);
+void ProcessIF(struct Pipeline *Pipeline, int width);
 
 #endif
