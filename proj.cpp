@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
         if ((width>5)||(width<0)||(starting_instruction<0)||(simulating_instruction<0))
         {
-            cout << "input Error. Terminating Simulation...\n" << endl;
+            cout << "Input Error. Terminating Simulation...\n" << endl;
         }
 
         int cycle_count = 0;
