@@ -1,5 +1,5 @@
-#ifndef proj_H
-#define proj_H
+#ifndef PROJ_H
+#define PROJ_H
 
 #include <fstream>
 #include <iostream>
