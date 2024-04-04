@@ -5,33 +5,33 @@
 #include <iostream>
 #include <string>
 
-typedef struct instruction{
+struct Instruction{
 
     enum class instructionType {IF, ID, EX, MEM, WB};
     int instruction_dependency; // 0 if none, else the instruction number it is depended on.
-    Instruction *next;
-    Instruction *prev;
+    struct Instruction *next;
+    struct Instruction *prev;
 
-} Instruction;
+};
 
-typedef struct instructionQueue{
+struct InstructionQueue{
 
-    Instruction *head;
-    Instruction *tail;
+    struct Instruction *head;
+    struct Instruction *tail;
 
-} InstructionQueue;
+};
 
-typedef struct pipeline{
+struct Pipeline{
 
-    InstructionQueue *IF_queue;
-    InstructionQueue *ID_queue;
-    InstructionQueue *EX_queue;
-    InstructionQueue *MEM_queue;
-    InstructionQueue *WB_queue;
+    struct InstructionQueue *IF_queue;
+    struct InstructionQueue *ID_queue;
+    struct InstructionQueue *EX_queue;
+    struct InstructionQueue *MEM_queue;
+    struct InstructionQueue *WB_queue;
 
     int finish_count;
     
-} Pipeline;
+};
 
 
 #endif
