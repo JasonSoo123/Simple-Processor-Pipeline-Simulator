@@ -18,6 +18,7 @@ struct InstructionQueue{
 
     struct Instruction *head;
     struct Instruction *tail;
+    int count;
 
 };
 
