@@ -121,3 +121,9 @@ void ProcessIF(struct Pipeline *Pipeline, int width){
 
 
 }
+
+int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count){
+
+    return cycle_count++;
+    
+}

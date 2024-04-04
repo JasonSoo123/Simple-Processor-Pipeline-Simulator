@@ -25,12 +25,13 @@ int main(int argc, char* argv[])
             cout << "Input Error. Terminating Simulation...\n" << endl;
         }
 
-        int cycle_count = 0;
+        
         struct Pipeline * pipeline = InitalizePipeline();
-        while (getline(infile, line) && (cycle_count < simulating_instruction)) 
+        int cycle_count = 0;
+        while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
         {
             
-            cycle_count++;
+      
         }
         
         infile.close(); 

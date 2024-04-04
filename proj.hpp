@@ -8,6 +8,7 @@
 struct Instruction{
 
     unsigned long instruction_address;
+    int cycle_inserted;
     int instructionType; // 1 Integer, 2 Floating, 3 branch, 4 load, 5 store
     unsigned long instruction_dependency[2]; // 0 if none, else the instruction number it is depended on.
     struct Instruction *next;
@@ -47,5 +48,6 @@ void ProcessMEM(struct Pipeline *Pipeline, int width);
 void ProcessEX(struct Pipeline *Pipeline, int width);
 void ProcessID(struct Pipeline *Pipeline, int width);
 void ProcessIF(struct Pipeline *Pipeline, int width);
+int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count);
 
 #endif
