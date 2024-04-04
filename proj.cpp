@@ -29,7 +29,8 @@ int main(int argc, char* argv[])
         struct Pipeline * pipeline = InitalizePipeline();
         int cycle_count = 0;
 
-        unsigned long token_array[4] = {0x0, 0, 0x0, 0x0};
+        unsigned long token_array[3] = {0x0, 0x0, 0x0};
+        int token_instruction_type = 0;
 
 
         while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
                 } 
                 else 
                 {
-                    token_array[i] = stoi(token); 
+                    token_instruction_type = stoi(token); 
                 }
                 i++;
             }
@@ -56,9 +57,9 @@ int main(int argc, char* argv[])
 
             // reset the token array
             token_array[0] = 0x0;
-            token_array[1] = 0;
+            token_array[1] = 0x0;
             token_array[2] = 0x0;
-            token_array[3] = 0x0;
+            token_instruction_type = 0;
         }
         
         infile.close(); 
