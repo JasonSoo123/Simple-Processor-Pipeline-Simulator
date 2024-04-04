@@ -173,6 +173,13 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
     }
 }
 
+void ProcessInstruction(struct Pipeline *Pipeline, int width, unsigned long address, int cycle_count, int instructionType,
+ unsigned long dependency1, unsigned long dependency2) {
+
+
+    
+ }
+
 int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
 
     ProcessWB(Pipeline, width);

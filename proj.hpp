@@ -43,11 +43,14 @@ struct Pipeline *InitalizePipeline();
 struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type, unsigned long dependency1, unsigned long dependency2);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
+void Delete_Instruction(struct InstructionQueue *InstructionQueue);
 void ProcessWB(struct Pipeline *Pipeline, int width);
 void ProcessMEM(struct Pipeline *Pipeline, int width);
 void ProcessEX(struct Pipeline *Pipeline, int width);
 void ProcessID(struct Pipeline *Pipeline, int width);
 void ProcessIF(struct Pipeline *Pipeline, int width);
-int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count);
+void ProcessInstruction(struct Pipeline *Pipeline, int width, unsigned long address, int cycle_count, int instructionType,
+ unsigned long dependency1, unsigned long dependency2);
+int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width);
 
 #endif
