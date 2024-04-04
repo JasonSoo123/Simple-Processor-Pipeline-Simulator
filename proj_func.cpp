@@ -120,9 +120,11 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
     }
 }
 
-void ProcessMEM(struct Pipeline *Pipeline, int width){
+void ProcessMEM(struct Pipeline *Pipeline, int width)
+{
 
-    while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) {
+    while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) 
+    {
 
         Insert_Queue(Pipeline->WB_queue, NewInstruction(Pipeline->MEM_queue->head->instruction_address, 
         Pipeline->MEM_queue->head->cycle_inserted, Pipeline->MEM_queue->head->instructionType,
@@ -132,19 +134,43 @@ void ProcessMEM(struct Pipeline *Pipeline, int width){
     }
 }
 
-void ProcessEX(struct Pipeline *Pipeline, int width){
-
+void ProcessEX(struct Pipeline *Pipeline, int width)
+{
+     while ((Pipeline->EX_queue->count != 0))
+    {
+        Insert_Queue(Pipeline->MEM_queue, NewInstruction(Pipeline->EX_queue->head->instruction_address, 
+        Pipeline->EX_queue->head->cycle_inserted, Pipeline->EX_queue->head->instructionType,
+         Pipeline->EX_queue->head->instruction_dependency[0], Pipeline->EX_queue->head->instruction_dependency[1]));
+    
+        Delete_Instruction(Pipeline->EX_queue);
+    }
 
 }
 
-void ProcessID(struct Pipeline *Pipeline, int width){
-
+void ProcessID(struct Pipeline *Pipeline, int width)
+{
+     while ((Pipeline->ID_queue->count != 0))
+    {
+        Insert_Queue(Pipeline->EX_queue, NewInstruction(Pipeline->ID_queue->head->instruction_address, 
+        Pipeline->ID_queue->head->cycle_inserted, Pipeline->ID_queue->head->instructionType,
+         Pipeline->ID_queue->head->instruction_dependency[0], Pipeline->ID_queue->head->instruction_dependency[1]));
+    
+        Delete_Instruction(Pipeline->ID_queue);
+     }
 
 }
 
-void ProcessIF(struct Pipeline *Pipeline, int width){
+void ProcessIF(struct Pipeline *Pipeline, int width)
+{
 
-
+    while ((Pipeline->IF_queue->count != 0))
+    {
+        Insert_Queue(Pipeline->ID_queue, NewInstruction(Pipeline->IF_queue->head->instruction_address, 
+        Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType,
+         Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]));
+    
+        Delete_Instruction(Pipeline->IF_queue);
+    }
 }
 
 int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
