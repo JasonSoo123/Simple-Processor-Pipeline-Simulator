@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
         int simulating_instruction = stoi(argv[3]);
         int width = stoi(argv[4]);
 
-        if ((width>5)||(width<0)||(starting_instruction<0)||(simulating_instruction<0))
+        if ((width>4)||(width<1)||(starting_instruction<0)||(simulating_instruction<0))
         {
             cout << "Input Error. Terminating Simulation...\n" << endl;
         }
