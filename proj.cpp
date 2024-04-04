@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
             return 1;
         }
         
-        string line;
+        string instruction;
         int starting_instruction = stoi(argv[2]);
         int simulating_instruction = stoi(argv[3]);
         int width = stoi(argv[4]);
@@ -24,14 +24,17 @@ int main(int argc, char* argv[])
         {
             cout << "Input Error. Terminating Simulation...\n" << endl;
         }
-
         
         struct Pipeline * pipeline = InitalizePipeline();
         int cycle_count = 0;
-        while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
+        while (getline(infile, instruction) || (pipeline->finish_count < simulating_instruction)) 
         {
-            
-      
+            istringstream iss(line);
+            string token;
+            while (getline(iss,token, ","))
+            {
+
+            }
         }
         
         infile.close(); 
