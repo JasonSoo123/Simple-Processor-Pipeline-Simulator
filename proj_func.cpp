@@ -34,6 +34,7 @@ struct Pipeline *InitalizePipeline(){
     pipeline->WB_queue->tail = NULL;
     pipeline->WB_queue->count = 0;
 
+    pipeline->latest_instruction_address_finished = 0x0;
     pipeline->finish_count = 0;
 
     return pipeline;
@@ -56,35 +57,66 @@ struct Instruction *NewInstruction(unsigned long address, int type,
 
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
 
-    if (InstructionQueue->head == nullptr) {
+    if (InstructionQueue->head == NULL) {
 
         InstructionQueue->head = Instruction;
         InstructionQueue->tail = Instruction;
-        
+
     } else {
        
         InstructionQueue->tail->next = Instruction;
         Instruction->prev = InstructionQueue->tail;
         InstructionQueue->tail = Instruction;
     }
+
+    InstructionQueue->count++;
+}
+
+unsigned long Delete_Instruction(struct InstructionQueue *InstructionQueue) {
+
+    struct Instruction *toDelete = InstructionQueue->head;
+    InstructionQueue->head = InstructionQueue->head->next;
+
+    if (InstructionQueue->head != NULL) {
+
+        InstructionQueue->head->prev = NULL;
+    } else {
+
+        InstructionQueue->tail = NULL;
+    }
+
+    unsigned long address = toDelete->instruction_address;
+
+    delete toDelete;
+    InstructionQueue->count--;
+
+    return address;
 }
 
 void ProcessWB(struct Pipeline *Pipeline, int width){
 
+    while (Pipeline->WB_queue->count != 0) {
 
+        Pipeline->latest_instruction_address_finished = Delete_Instruction(Pipeline->WB_queue);
+        Pipeline->finish_count++;
+    }
 }
+
 void ProcessMEM(struct Pipeline *Pipeline, int width){
 
 
 }
+
 void ProcessEX(struct Pipeline *Pipeline, int width){
 
 
 }
+
 void ProcessID(struct Pipeline *Pipeline, int width){
 
 
 }
+
 void ProcessIF(struct Pipeline *Pipeline, int width){
 
 

@@ -32,6 +32,8 @@ struct Pipeline{
     struct InstructionQueue *MEM_queue;
     struct InstructionQueue *WB_queue;
 
+    unsigned long latest_instruction_address_finished;
+
     int finish_count;
     
 };
@@ -39,6 +41,7 @@ struct Pipeline{
 struct Pipeline *InitalizePipeline();
 struct Instruction *NewInstruction(unsigned long address, int type, unsigned long dependency1, unsigned long dependency2);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
+unsigned long Delete_Instruction(struct InstructionQueue *InstructionQueue);
 void ProcessWB(struct Pipeline *Pipeline, int width);
 void ProcessMEM(struct Pipeline *Pipeline, int width);
 void ProcessEX(struct Pipeline *Pipeline, int width);
