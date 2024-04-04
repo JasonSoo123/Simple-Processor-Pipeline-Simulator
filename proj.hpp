@@ -1,6 +1,10 @@
 #ifndef proj_H
 #define proj_H
 
+#include <fstream>
+#include <iostream>
+#include <string>
+
 typedef struct instruction{
 
     enum class instructionType {IF, ID, EX, MEM, WB};
