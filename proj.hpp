@@ -22,7 +22,7 @@ struct InstructionQueue{
 };
 
 struct Pipeline{
-    
+
     struct InstructionQueue *stall_queue;
     struct InstructionQueue *IF_queue;
     struct InstructionQueue *ID_queue;
@@ -34,5 +34,7 @@ struct Pipeline{
     
 };
 
+struct Pipeline *InitalizePipeline();
+struct Instruction *NewInstruction();
 
 #endif
