@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
             return 1;
         }
         
-        string instruction;
+        string line;
         int starting_instruction = stoi(argv[2]);
         int simulating_instruction = stoi(argv[3]);
         int width = stoi(argv[4]);
@@ -24,17 +24,41 @@ int main(int argc, char* argv[])
         {
             cout << "Input Error. Terminating Simulation...\n" << endl;
         }
+
         
         struct Pipeline * pipeline = InitalizePipeline();
         int cycle_count = 0;
-        while (getline(infile, instruction) || (pipeline->finish_count < simulating_instruction)) 
+
+        unsigned long token_array[4] = {0x0, 0, 0x0, 0x0};
+
+
+        while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
         {
             istringstream iss(line);
             string token;
-            while (getline(iss,token, ","))
+
+            int i = 0;
+            while (getline(iss, token, ',')) 
             {
 
+                if (i != 1) 
+                {
+                    token_array[i] = stoul(token);
+
+                } 
+                else 
+                {
+                    token_array[i] = stoi(token); 
+                }
+                i++;
             }
+
+
+            // reset the token array
+            token_array[0] = 0x0;
+            token_array[1] = 0;
+            token_array[2] = 0x0;
+            token_array[3] = 0x0;
         }
         
         infile.close(); 
