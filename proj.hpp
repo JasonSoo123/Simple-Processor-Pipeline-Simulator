@@ -8,7 +8,7 @@
 struct Instruction{
 
     enum class instructionType {IF, ID, EX, MEM, WB};
-    int instruction_dependency; // 0 if none, else the instruction number it is depended on.
+    unsigned long instruction_dependency[2]; // 0 if none, else the instruction number it is depended on.
     struct Instruction *next;
     struct Instruction *prev;
 
