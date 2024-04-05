@@ -36,6 +36,7 @@ struct Pipeline *InitalizePipeline(){
 
     pipeline->latest_instruction_address_finished = 0x0;
     pipeline->finish_count = 0;
+    pipeline->instructions_count = 0;
 
     return pipeline;
 }

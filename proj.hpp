@@ -36,6 +36,8 @@ struct Pipeline{
 
     unsigned long latest_instruction_address_finished;
 
+    int instructions_count; // instructions in the whole pipeline
+
     int finish_count;
     
 };

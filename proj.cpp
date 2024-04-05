@@ -61,6 +61,7 @@ int main(int argc, char* argv[])
             if ((pipeline->IF_queue->count != width) && (pipeline->IF_queue->tail->instructionType != 3)) 
             {
                 Insert_Queue(pipeline->IF_queue, newInstruction);
+                pipeline->instructions_count++;
             }
             else 
             {
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
             token_array[2] = 0x0;
             token_instruction_type = 0;
 
-            if ((pipeline->IF_queue->count == width) || (pipeline->IF_queue->tail->instructionType == 3)) 
+            if (pipeline->instructions_count > 0) 
             {
 
                 Simulate_Cycle(pipeline, cycle_count, width);
