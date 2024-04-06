@@ -187,3 +187,37 @@ int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
     return cycle_count++;
     
 }
+bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline, int width)
+{
+    struct Instruction *current = Pipeline->IF_queue->head;
+    while (current != NULL) 
+    {
+        if (current->instructionType == 3) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->ID_queue->head;
+    while (current != NULL) 
+    {
+        if (current->instructionType == 3) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->EX_queue->head;
+    while (current != NULL) 
+    {
+        if (current->instructionType == 3) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+    
+    return false;
+}

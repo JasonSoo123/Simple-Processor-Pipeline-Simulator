@@ -66,7 +66,8 @@ int main(int argc, char* argv[])
             else 
             {
                 Insert_Queue(pipeline->stall_queue, newInstruction);
-                if (pipeline->IF_queue->count != width) {
+                if (pipeline->IF_queue->count != width) 
+                {
                     Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, 0x0, 0x0)); // place a dummy node
                 }
             }
