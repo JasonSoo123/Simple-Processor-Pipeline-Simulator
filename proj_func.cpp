@@ -1,6 +1,23 @@
 #include "proj.hpp"
 
-struct Pipeline *InitalizePipeline(){
+void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
+
+    if (InstructionQueue->head == NULL) {
+
+        InstructionQueue->head = Instruction;
+        InstructionQueue->tail = Instruction;
+
+    } else {
+       
+        InstructionQueue->tail->next = Instruction;
+        Instruction->prev = InstructionQueue->tail;
+        InstructionQueue->tail = Instruction;
+    }
+
+    InstructionQueue->count++;
+}
+
+struct Pipeline *InitalizePipeline(int width){
 
     struct Pipeline *pipeline = new struct Pipeline;
 
@@ -18,21 +35,33 @@ struct Pipeline *InitalizePipeline(){
     pipeline->ID_queue->head = NULL;
     pipeline->ID_queue->tail = NULL;
     pipeline->ID_queue->count = 0;
+    for (int i = 0; i < width; i++) {
+        Insert_Queue(pipeline->ID_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+    }
 
     pipeline->EX_queue = new struct InstructionQueue;
     pipeline->EX_queue->head = NULL;
     pipeline->EX_queue->tail = NULL;
     pipeline->EX_queue->count = 0;
+    for (int i = 0; i < width; i++) {
+        Insert_Queue(pipeline->EX_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+    }
 
     pipeline->MEM_queue = new struct InstructionQueue;
     pipeline->MEM_queue->head = NULL;
     pipeline->MEM_queue->tail = NULL;
     pipeline->MEM_queue->count = 0;
+    for (int i = 0; i < width; i++) {
+        Insert_Queue(pipeline->MEM_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+    }
 
     pipeline->WB_queue = new struct InstructionQueue;
     pipeline->WB_queue->head = NULL;
     pipeline->WB_queue->tail = NULL;
     pipeline->WB_queue->count = 0;
+    for (int i = 0; i < width; i++) {
+        Insert_Queue(pipeline->WB_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+    }
 
     pipeline->latest_instruction_address_finished = 0x0;
     pipeline->finish_count = 0;
@@ -56,23 +85,6 @@ struct Instruction *NewInstruction(unsigned long address, int cycle_count, int t
     return newInstruction;
 
  }
-
-void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
-
-    if (InstructionQueue->head == NULL) {
-
-        InstructionQueue->head = Instruction;
-        InstructionQueue->tail = Instruction;
-
-    } else {
-       
-        InstructionQueue->tail->next = Instruction;
-        Instruction->prev = InstructionQueue->tail;
-        InstructionQueue->tail = Instruction;
-    }
-
-    InstructionQueue->count++;
-}
 
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue) {
 

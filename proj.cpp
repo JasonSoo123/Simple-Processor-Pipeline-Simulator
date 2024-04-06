@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
         }
 
         
-        struct Pipeline * pipeline = InitalizePipeline();
+        struct Pipeline * pipeline = InitalizePipeline(width);
         int cycle_count = 0;
 
         unsigned long token_array[3] = {0x0, 0x0, 0x0};

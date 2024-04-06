@@ -42,7 +42,7 @@ struct Pipeline{
     
 };
 
-struct Pipeline *InitalizePipeline();
+struct Pipeline *InitalizePipeline(int width);
 struct Instruction *NewInstruction(unsigned long address, int type, unsigned long dependency1, unsigned long dependency2);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
@@ -53,5 +53,6 @@ void ProcessEX(struct Pipeline *Pipeline, int width);
 void ProcessID(struct Pipeline *Pipeline, int width);
 void ProcessIF(struct Pipeline *Pipeline, int width);
 int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width);
+bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline, int width);
 
 #endif
