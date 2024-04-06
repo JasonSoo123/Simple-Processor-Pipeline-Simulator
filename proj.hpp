@@ -53,6 +53,6 @@ void ProcessEX(struct Pipeline *Pipeline, int width);
 void ProcessID(struct Pipeline *Pipeline, int width);
 void ProcessIF(struct Pipeline *Pipeline, int width);
 int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width);
-bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline, int width);
+bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
 
 #endif

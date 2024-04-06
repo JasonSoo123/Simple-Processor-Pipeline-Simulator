@@ -58,6 +58,13 @@ int main(int argc, char* argv[])
             struct Instruction *newInstruction = NewInstruction(token_array[0],
              token_instruction_type, token_array[1], token_array[2]);
 
+
+             if ((pipeline->stall_queue->count > 0)&&(!isBranchin_IF_ID_EX(pipeline)))
+             {
+                //while((pipeline->stall_queue->count > 0)&&)
+             }
+
+
             if ((pipeline->IF_queue->count != width) && (pipeline->IF_queue->tail->instructionType != 3)) 
             {
                 Insert_Queue(pipeline->IF_queue, newInstruction);
