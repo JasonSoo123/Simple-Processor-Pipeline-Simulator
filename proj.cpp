@@ -77,7 +77,9 @@ int main(int argc, char* argv[])
             token_array[2] = 0x0;
             token_instruction_type = 0;
 
-            if (pipeline->instructions_count > 0) 
+            if ((pipeline->IF_queue->count == width) || (pipeline->ID_queue->count == width) ||
+            (pipeline->EX_queue->count == width) || (pipeline->MEM_queue->count == width) ||
+            (pipeline->WB_queue->count == width)) 
             {
 
                 Simulate_Cycle(pipeline, cycle_count, width);
