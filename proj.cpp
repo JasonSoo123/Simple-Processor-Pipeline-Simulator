@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
         while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
         {
-            if (i > starting_instruction) {
+            if (i >= starting_instruction) {
 
                 istringstream iss(line);
                 string token;
