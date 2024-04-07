@@ -45,7 +45,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->ID_queue->tail = NULL;
     pipeline->ID_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->ID_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
+        Insert_Queue(pipeline->ID_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0));
     }
 
     pipeline->EX_queue = new struct InstructionQueue;
@@ -53,7 +53,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->EX_queue->tail = NULL;
     pipeline->EX_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->EX_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
+        Insert_Queue(pipeline->EX_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0));
     }
 
     pipeline->MEM_queue = new struct InstructionQueue;
@@ -61,7 +61,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->MEM_queue->tail = NULL;
     pipeline->MEM_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->MEM_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
+        Insert_Queue(pipeline->MEM_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0));
     }
 
     pipeline->WB_queue = new struct InstructionQueue;
@@ -69,7 +69,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->WB_queue->tail = NULL;
     pipeline->WB_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->WB_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
+        Insert_Queue(pipeline->WB_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0));
     }
 
     pipeline->cycle_count = 0;
@@ -142,6 +142,7 @@ void Delete_Instruction(struct InstructionQueue *InstructionQueue){
 
 void ProcessWB(struct Pipeline *Pipeline, int width){
 
+    cout << "writing back... " << endl;
     while (Pipeline->WB_queue->count != 0) {
 
         if (Pipeline->WB_queue->head->instructionType != 6) {
@@ -179,7 +180,7 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
 void ProcessMEM(struct Pipeline *Pipeline, int width)
 {
-
+    cout << "Memory... " << endl;
     while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) 
     {
         if (Pipeline->MEM_queue->head->instructionType == 4) {
@@ -200,9 +201,14 @@ void ProcessMEM(struct Pipeline *Pipeline, int width)
 }
 
 void ProcessEX(struct Pipeline *Pipeline, int width)
-{
+{   
+    cout << "Execute... " << endl;
+    cout << "EX count " << Pipeline->EX_queue->count << endl;
+    cout << "MEM count " << Pipeline->MEM_queue->count << endl;
      while ((Pipeline->EX_queue->count != 0) && Pipeline->MEM_queue->count != width)
     {   
+        cout << "here" << endl;
+        cout << "Pipeline instructionType " << Pipeline->EX_queue->head->instructionType << endl;
         if (((Pipeline->EX_queue->head->instructionType == 1)) ||
          ((Pipeline->EX_queue->head->instructionType == 2)) || 
          ((Pipeline->EX_queue->head->instructionType == 3))
@@ -242,7 +248,11 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 }
 
 void ProcessID(struct Pipeline *Pipeline, int width)
-{
+{   
+    cout << "Decoding... " << endl;
+
+    cout << "Id count " << Pipeline->ID_queue->count << endl;
+    cout << "EX count " << Pipeline->EX_queue->count << endl;
      while ((Pipeline->ID_queue->count != 0) && Pipeline->EX_queue->count != width)
     {   
         // Assuming because it is an In-Order Pipeline...
@@ -283,7 +293,7 @@ void ProcessID(struct Pipeline *Pipeline, int width)
 
 void ProcessIF(struct Pipeline *Pipeline, int width)
 {
-
+    cout << "Fetch... " << endl;
     while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
     {   
         if ((max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]) == 0)||(std::max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]) <= (Pipeline->latest_instruction_address_finished)))//no depndencies or denpendencies are finished

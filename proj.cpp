@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
                         }  else {
 
-                             Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0)); // place a dummy node
+                             Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0)); // place a dummy node
                         }
                     }
                 }
