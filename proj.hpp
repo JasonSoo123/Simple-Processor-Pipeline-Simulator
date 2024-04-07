@@ -54,7 +54,7 @@ struct Pipeline
 };
 
 struct Pipeline *InitalizePipeline(int width);
-struct Instruction *NewInstruction(unsigned long address, int type, int cycle_count, unsigned long dependency1, unsigned long dependency2);
+struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type, unsigned long dependency1, unsigned long dependency2) ;
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);

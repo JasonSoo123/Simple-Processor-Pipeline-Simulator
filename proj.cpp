@@ -33,12 +33,12 @@ int main(int argc, char* argv[])
         unsigned long token_array[3] = {0x0, 0x0, 0x0};
         int token_instruction_type = 0;
 
-        int i = 0;
+        int j = 0;
 
 
         while (getline(infile, line)) 
         {
-            if (i >= starting_instruction) {
+            if (j >= starting_instruction) {
 
                 istringstream iss(line);
                 string token;
@@ -48,8 +48,14 @@ int main(int argc, char* argv[])
                 {
 
                     if (i != 1) 
-                    {
-                        token_array[i] = stoul(token);
+                    {   
+                        if (i == 0) {
+
+                            token_array[i] = stoul(token);
+                        } else {
+
+                            token_array[i-1] = stoul(token);
+                        }
 
                     } 
                     else 
@@ -61,9 +67,15 @@ int main(int argc, char* argv[])
                 
                 // proccess the instruction with tokens
                 struct Instruction *newInstruction = NewInstruction(token_array[0],
-                token_instruction_type, pipeline->cycle_count, token_array[1], token_array[2]);
+                pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2]);
 
-                
+                cout << "Instruction " << j << endl;
+                cout << "address: " << newInstruction->instruction_address << endl;
+                cout << "type: " << newInstruction->instructionType << endl;
+                cout << "cycle inserted: " << newInstruction->cycle_inserted << endl;
+                cout << "dependency 1: " << newInstruction->instruction_dependency[0] << endl;
+                cout << "dependency 2: " << newInstruction->instruction_dependency[1] << endl;
+                cout << endl;
                 if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
                 {
                     while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
@@ -117,7 +129,7 @@ int main(int argc, char* argv[])
                 }
             }
             
-            i++;
+            j++;
         }
         
         infile.close(); 
