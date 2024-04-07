@@ -71,7 +71,8 @@ int main(int argc, char* argv[])
              }
 
 
-            if ((pipeline->IF_queue->count != width) && (pipeline->IF_queue->tail->instructionType != 3)) 
+            if ((pipeline->IF_queue->count != width) && (pipeline->IF_queue->tail->instructionType != 3)
+            && (pipeline->IF_queue->tail->instructionType != 6)) 
             {
                 Insert_Queue(pipeline->IF_queue, newInstruction);
                 pipeline->instructions_count++;
