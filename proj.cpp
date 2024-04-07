@@ -51,10 +51,10 @@ int main(int argc, char* argv[])
                     {   
                         if (i == 0) {
 
-                            token_array[i] = stoul(token);
+                            token_array[i] = stoul(token, nullptr, 16);
                         } else {
 
-                            token_array[i-1] = stoul(token);
+                            token_array[i-1] = stoul(token, nullptr, 16);
                         }
 
                     } 
