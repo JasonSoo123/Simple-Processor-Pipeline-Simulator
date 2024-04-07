@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceFolder}/proj",
-            "args": ["meow","0","10", "2"],
+            "args": ["meow","0","10", "1"],
             "cwd": "${workspaceFolder}"
         }
     ]
