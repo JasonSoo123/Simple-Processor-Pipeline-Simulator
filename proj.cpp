@@ -58,9 +58,16 @@ int main(int argc, char* argv[])
              token_instruction_type, pipeline->cycle_count, token_array[1], token_array[2]);
 
 
-             if ((pipeline->stall_queue->count > 0)&&(!isBranchin_IF_ID_EX(pipeline)))
+             if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
              {
-                //while((pipeline->stall_queue->count > 0)&&)
+                while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
+                {
+                    struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                    pipeline->stall_queue->head->instructionType, pipeline->stall_queue->head->cycle_inserted, 
+                    pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1]);
+                    Insert_Queue(pipeline->IF_queue, newInstruction);
+                    Delete_Instruction(pipeline->stall_queue);
+                }
              }
 
 
