@@ -1,4 +1,5 @@
 #include "proj.hpp"
+#include <algorithm>
 
 // ------------Global variables----------------------------------------------------------------------
 // Feel free to add or remove. 
@@ -255,16 +256,24 @@ void ProcessID(struct Pipeline *Pipeline, int width)
 
 }
 
+
 void ProcessIF(struct Pipeline *Pipeline, int width)
 {
 
-    while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
+    while ((Pipeline->IF_queue->count != 0))
     {
-        Insert_Queue(Pipeline->ID_queue, NewInstruction(Pipeline->IF_queue->head->instruction_address, 
-        Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType,
-         Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]));
-    
-        Delete_Instruction(Pipeline->IF_queue);
+        if ((std::max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]) == 0)||(std::max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]) <= (Pipeline->latest_instruction_address_finished)))//no depndencies or denpendencies are finished
+        {   
+            struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
+            Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
+            Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]);
+
+            Insert_Queue(Pipeline->ID_queue,newInstruction);
+            Delete_Instruction(Pipeline->IF_queue);
+        } else {
+            break;
+        }
+
     }
 }
 
