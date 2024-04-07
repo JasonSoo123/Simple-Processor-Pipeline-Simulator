@@ -28,19 +28,21 @@ int main(int argc, char* argv[])
         
         struct Pipeline * pipeline = InitalizePipeline(width);
 
+        cout << "Pipeline Initalized" << endl;
+
         unsigned long token_array[3] = {0x0, 0x0, 0x0};
         int token_instruction_type = 0;
 
         int i = 0;
 
 
-        while (getline(infile, line) || (pipeline->finish_count < simulating_instruction)) 
+        while (getline(infile, line)) 
         {
             if (i >= starting_instruction) {
 
                 istringstream iss(line);
                 string token;
-
+                
                 int i = 0;
                 while (getline(iss, token, ',')) 
                 {
@@ -56,12 +58,12 @@ int main(int argc, char* argv[])
                     }
                     i++;
                 }
-
+                
                 // proccess the instruction with tokens
                 struct Instruction *newInstruction = NewInstruction(token_array[0],
                 token_instruction_type, pipeline->cycle_count, token_array[1], token_array[2]);
 
-
+                
                 if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
                 {
                     while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
@@ -73,23 +75,32 @@ int main(int argc, char* argv[])
                         Delete_Instruction(pipeline->stall_queue);
                     }
                 }
+                if ((pipeline->IF_queue->count != width)) 
+                {   
+                    if (pipeline->IF_queue->head == NULL) {
 
+                        Insert_Queue(pipeline->IF_queue, newInstruction);
+                        pipeline->instructions_count++;
 
-                if ((pipeline->IF_queue->count != width) && (pipeline->IF_queue->tail->instructionType != 3)
-                && (pipeline->IF_queue->tail->instructionType != 6)) 
-                {
-                    Insert_Queue(pipeline->IF_queue, newInstruction);
-                    pipeline->instructions_count++;
-                }
-                else 
-                {
-                    Insert_Queue(pipeline->stall_queue, newInstruction);
-                    if (pipeline->IF_queue->count != width) 
-                    {
-                        Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0)); // place a dummy node
+                    } else {
+                        
+                        if ((pipeline->IF_queue->tail->instructionType != 3) && 
+                        (pipeline->IF_queue->tail->instructionType != 6)) {
+
+                            Insert_Queue(pipeline->IF_queue, newInstruction);
+                            pipeline->instructions_count++;
+
+                        }  else {
+
+                             Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0)); // place a dummy node
+                        }
                     }
                 }
-
+                else 
+                {   
+                    Insert_Queue(pipeline->stall_queue, newInstruction);
+                }
+                
                 // reset the token array
                 token_array[0] = 0x0;
                 token_array[1] = 0x0;
