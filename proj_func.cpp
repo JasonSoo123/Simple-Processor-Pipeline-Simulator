@@ -157,6 +157,7 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
             } else  if (Pipeline->WB_queue->head->instructionType == 3) {
                 
+                branch_ex = 0;
                 Pipeline->branch_count++;
 
             } else  if (Pipeline->WB_queue->head->instructionType == 4) {

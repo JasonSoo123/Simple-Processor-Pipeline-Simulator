@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 
         while (getline(infile, line)) 
         {
-            if (j >= starting_instruction) {
+            if (j >= starting_instruction && j < starting_instruction + simulating_instruction) {
 
                 istringstream iss(line);
                 string token;
@@ -142,10 +142,14 @@ int main(int argc, char* argv[])
             }
             
             j++;
+            if (pipeline->instructions_count >= simulating_instruction){
+                break;
+            }
         }
         
         infile.close(); 
-        
+        cout << pipeline->finish_count <<endl;
+
     } 
     else 
     {
