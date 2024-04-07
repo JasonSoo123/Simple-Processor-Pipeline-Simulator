@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <algorithm>
+
+using namespace std;
 
 struct Instruction
 {

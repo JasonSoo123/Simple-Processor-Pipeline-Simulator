@@ -1,5 +1,4 @@
 #include "proj.hpp"
-using namespace std;
 
 
 int main(int argc, char* argv[]) 
@@ -118,12 +117,23 @@ int main(int argc, char* argv[])
                 token_array[1] = 0x0;
                 token_array[2] = 0x0;
                 token_instruction_type = 0;
+                cout << "Counts: " << endl;
+                cout << pipeline->IF_queue->count << " " << pipeline->IF_queue->head->instruction_address << endl;
+                cout << pipeline->ID_queue->count << " " << pipeline->ID_queue->head->instruction_address << endl;
+                cout << pipeline->EX_queue->count << " " << pipeline->EX_queue->head->instruction_address<< endl;
 
+                if (pipeline->MEM_queue->head != NULL) {
+
+                    cout << pipeline->MEM_queue->count << " " << pipeline->MEM_queue->head->instruction_address<< endl;
+                } else {
+                    cout << "mem spot " << endl;
+                }
+                cout << pipeline->WB_queue->count << " " << pipeline->WB_queue->head->instruction_address<< endl;
                 if ((pipeline->IF_queue->count == width) && (pipeline->ID_queue->count == width) &&
                 (pipeline->EX_queue->count == width) && (pipeline->MEM_queue->count == width) &&
                 (pipeline->WB_queue->count == width)) 
                 {
-
+                    cout << "Starting to Simulate a Cycle..." << endl;
                     Simulate_Cycle(pipeline, width);
 
                 }
