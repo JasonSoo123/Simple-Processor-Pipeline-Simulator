@@ -27,7 +27,6 @@ int main(int argc, char* argv[])
 
         
         struct Pipeline * pipeline = InitalizePipeline(width);
-        int cycle_count = 0;
 
         unsigned long token_array[3] = {0x0, 0x0, 0x0};
         int token_instruction_type = 0;
@@ -56,7 +55,7 @@ int main(int argc, char* argv[])
 
             // proccess the instruction with tokens
             struct Instruction *newInstruction = NewInstruction(token_array[0],
-             token_instruction_type, token_array[1], token_array[2]);
+             token_instruction_type, pipeline->cycle_count, token_array[1], token_array[2]);
 
 
              if ((pipeline->stall_queue->count > 0)&&(!isBranchin_IF_ID_EX(pipeline)))
@@ -75,7 +74,7 @@ int main(int argc, char* argv[])
                 Insert_Queue(pipeline->stall_queue, newInstruction);
                 if (pipeline->IF_queue->count != width) 
                 {
-                    Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, 0x0, 0x0)); // place a dummy node
+                    Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0)); // place a dummy node
                 }
             }
 
@@ -90,7 +89,7 @@ int main(int argc, char* argv[])
             (pipeline->WB_queue->count == width)) 
             {
 
-                Simulate_Cycle(pipeline, cycle_count, width);
+                Simulate_Cycle(pipeline, width);
 
             }
         }

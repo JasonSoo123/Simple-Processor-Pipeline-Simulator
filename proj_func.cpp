@@ -36,7 +36,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->ID_queue->tail = NULL;
     pipeline->ID_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->ID_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+        Insert_Queue(pipeline->ID_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
     }
 
     pipeline->EX_queue = new struct InstructionQueue;
@@ -44,7 +44,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->EX_queue->tail = NULL;
     pipeline->EX_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->EX_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+        Insert_Queue(pipeline->EX_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
     }
 
     pipeline->MEM_queue = new struct InstructionQueue;
@@ -52,7 +52,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->MEM_queue->tail = NULL;
     pipeline->MEM_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->MEM_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+        Insert_Queue(pipeline->MEM_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
     }
 
     pipeline->WB_queue = new struct InstructionQueue;
@@ -60,9 +60,10 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->WB_queue->tail = NULL;
     pipeline->WB_queue->count = 0;
     for (int i = 0; i < width; i++) {
-        Insert_Queue(pipeline->WB_queue, NewInstruction(0x0, 6, 0x0, 0x0));
+        Insert_Queue(pipeline->WB_queue, NewInstruction(0x0, 6, -1, 0x0, 0x0));
     }
 
+    pipeline->cycle_count = 0;
     pipeline->latest_instruction_address_finished = 0x0;
     pipeline->finish_count = 0;
     pipeline->instructions_count = 0;
@@ -188,7 +189,7 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
 
 
-int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
+void Simulate_Cycle(struct Pipeline *Pipeline, int width){
 
     ProcessWB(Pipeline, width);
     ProcessMEM(Pipeline, width);
@@ -196,7 +197,7 @@ int Simulate_Cycle(struct Pipeline *Pipeline, int cycle_count, int width){
     ProcessID(Pipeline, width);
     ProcessIF(Pipeline, width);
 
-    return cycle_count++;
+    Pipeline->cycle_count++;
     
 }
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
