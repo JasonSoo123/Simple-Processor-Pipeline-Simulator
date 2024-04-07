@@ -44,6 +44,12 @@ struct Pipeline
     int cycle_count; //current cycle 
 
     int finish_count;//number of instructions finished
+
+    int integer_count;
+    int floating_count;
+    int branch_count;
+    int load_count;
+    int store_count;
     
 };
 

@@ -1,5 +1,14 @@
 #include "proj.hpp"
 
+// ------------Global variables----------------------------------------------------------------------
+// Feel free to add or remove. 
+// You could make these local variables for cleaner code, but you need to change function definitions 
+int int_ALU = 0; // integer alu vancany. 0 is not being used else it is 1 if it is.
+int ftp_ALU = 0; // floating point alu vancancy. 0 is empty, 1 is using.
+int branch_ex = 0; // branch execution if being used is 1 else is 0
+int storing_port = 0; // write port 0 if not being used 1 if being used.
+int loading_port = 0; // read port 0 if not being used 1 if being used.
+
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
 
     if (InstructionQueue->head == NULL) {
@@ -68,6 +77,12 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->finish_count = 0;
     pipeline->instructions_count = 0;
 
+    pipeline->integer_count = 0;
+    pipeline->floating_count = 0;
+    pipeline->branch_count = 0;
+    pipeline->load_count = 0;
+    pipeline->store_count = 0;
+
     return pipeline;
 }
 
@@ -131,6 +146,27 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
         if (Pipeline->WB_queue->head->instructionType != 6) {
 
+            if (Pipeline->WB_queue->head->instructionType == 1) {
+
+                Pipeline->integer_count++;
+
+            } else  if (Pipeline->WB_queue->head->instructionType == 2) {
+                
+                Pipeline->floating_count++;
+
+            } else  if (Pipeline->WB_queue->head->instructionType == 3) {
+                
+                Pipeline->branch_count++;
+
+            } else  if (Pipeline->WB_queue->head->instructionType == 4) {
+                
+                Pipeline->load_count++;
+
+            } else {
+
+                Pipeline->store_count++;
+            }
+
             Pipeline->latest_instruction_address_finished = Delete_WB_Instruction(Pipeline->WB_queue);
             Pipeline->finish_count++;
             
@@ -157,8 +193,8 @@ void ProcessMEM(struct Pipeline *Pipeline, int width)
 
 void ProcessEX(struct Pipeline *Pipeline, int width)
 {
-     while ((Pipeline->EX_queue->count != 0))
-    {
+     while ((Pipeline->EX_queue->count != 0) && Pipeline->MEM_queue->count != width)
+    {   
         Insert_Queue(Pipeline->MEM_queue, NewInstruction(Pipeline->EX_queue->head->instruction_address, 
         Pipeline->EX_queue->head->cycle_inserted, Pipeline->EX_queue->head->instructionType,
          Pipeline->EX_queue->head->instruction_dependency[0], Pipeline->EX_queue->head->instruction_dependency[1]));
@@ -170,21 +206,47 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 
 void ProcessID(struct Pipeline *Pipeline, int width)
 {
-     while ((Pipeline->ID_queue->count != 0))
-    {
-        Insert_Queue(Pipeline->EX_queue, NewInstruction(Pipeline->ID_queue->head->instruction_address, 
-        Pipeline->ID_queue->head->cycle_inserted, Pipeline->ID_queue->head->instructionType,
-         Pipeline->ID_queue->head->instruction_dependency[0], Pipeline->ID_queue->head->instruction_dependency[1]));
+     while ((Pipeline->ID_queue->count != 0) && Pipeline->EX_queue->count != width)
+    {   
+        // Assuming because it is an In-Order Pipeline...
+        if (((Pipeline->ID_queue->head->instructionType == 1) && (int_ALU == 0)) ||
+         ((Pipeline->ID_queue->head->instructionType == 2) && (ftp_ALU == 0)) || 
+         ((Pipeline->ID_queue->head->instructionType == 3) && (branch_ex == 0))
+         || (Pipeline->ID_queue->head->instructionType == 4) || (Pipeline->ID_queue->head->instructionType == 5) ||
+         (Pipeline->ID_queue->head->instructionType == 6)) {
+
+            // make it busy.
+            if (Pipeline->ID_queue->head->instructionType == 1) {
+
+                int_ALU = 1;
+
+            } else if (Pipeline->ID_queue->head->instructionType == 2) {
+
+                ftp_ALU = 1;
+
+            } else if (Pipeline->ID_queue->head->instructionType == 3) {
+
+                branch_ex = 1;
+            }
+
+            Insert_Queue(Pipeline->EX_queue, NewInstruction(Pipeline->ID_queue->head->instruction_address, 
+            Pipeline->ID_queue->head->cycle_inserted, Pipeline->ID_queue->head->instructionType,
+            Pipeline->ID_queue->head->instruction_dependency[0], Pipeline->ID_queue->head->instruction_dependency[1]));
     
-        Delete_Instruction(Pipeline->ID_queue);
-     }
+            Delete_Instruction(Pipeline->ID_queue);
+
+        } else {
+
+            break;
+        }
+    }
 
 }
 
 void ProcessIF(struct Pipeline *Pipeline, int width)
 {
 
-    while ((Pipeline->IF_queue->count != 0))
+    while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
     {
         Insert_Queue(Pipeline->ID_queue, NewInstruction(Pipeline->IF_queue->head->instruction_address, 
         Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType,
