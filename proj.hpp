@@ -6,18 +6,20 @@
 #include <string>
 #include <sstream>
 
-struct Instruction{
+struct Instruction
+{
 
     unsigned long instruction_address;
     int cycle_inserted;
-    int instructionType; // 1 Integer, 2 Floating, 3 branch, 4 load, 5 store
+    int instructionType; // 1 Integer, 2 Floating, 3 branch, 4 load, 5 store, 6 dummy node
     unsigned long instruction_dependency[2]; // 0 if none, else the instruction number it is depended on.
     struct Instruction *next;
     struct Instruction *prev;
 
 };
 
-struct InstructionQueue{
+struct InstructionQueue
+{
 
     struct Instruction *head;
     struct Instruction *tail;
@@ -25,7 +27,8 @@ struct InstructionQueue{
 
 };
 
-struct Pipeline{
+struct Pipeline
+{
 
     struct InstructionQueue *stall_queue;
     struct InstructionQueue *IF_queue;
@@ -36,11 +39,11 @@ struct Pipeline{
 
     unsigned long latest_instruction_address_finished;
 
-    int instructions_count; // instructions in the whole pipeline
+    int instructions_count; // number of instructions in the whole pipeline
 
-    int cycle_count;
+    int cycle_count; 
 
-    int finish_count;
+    int finish_count;//number of instructions finished
     
 };
 
