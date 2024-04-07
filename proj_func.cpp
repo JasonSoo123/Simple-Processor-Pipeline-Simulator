@@ -129,8 +129,15 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
     while (Pipeline->WB_queue->count != 0) {
 
-        Pipeline->latest_instruction_address_finished = Delete_WB_Instruction(Pipeline->WB_queue);
-        Pipeline->finish_count++;
+        if (Pipeline->WB_queue->head->instructionType != 6) {
+
+            Pipeline->latest_instruction_address_finished = Delete_WB_Instruction(Pipeline->WB_queue);
+            Pipeline->finish_count++;
+            
+        } else {
+
+            Delete_Instruction(Pipeline->WB_queue);
+        }
     }
 }
 
