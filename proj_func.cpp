@@ -195,11 +195,23 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 {
      while ((Pipeline->EX_queue->count != 0) && Pipeline->MEM_queue->count != width)
     {   
-        Insert_Queue(Pipeline->MEM_queue, NewInstruction(Pipeline->EX_queue->head->instruction_address, 
-        Pipeline->EX_queue->head->cycle_inserted, Pipeline->EX_queue->head->instructionType,
-         Pipeline->EX_queue->head->instruction_dependency[0], Pipeline->EX_queue->head->instruction_dependency[1]));
+        if (((Pipeline->ID_queue->head->instructionType == 1)) ||
+         ((Pipeline->ID_queue->head->instructionType == 2)) || 
+         ((Pipeline->ID_queue->head->instructionType == 3))
+         || ((Pipeline->ID_queue->head->instructionType == 4) && (storing_port == 0)) 
+         || ((Pipeline->ID_queue->head->instructionType == 5) && (loading_port == 0)) 
+         || (Pipeline->ID_queue->head->instructionType == 6)) {
+
+            Insert_Queue(Pipeline->MEM_queue, NewInstruction(Pipeline->EX_queue->head->instruction_address, 
+            Pipeline->EX_queue->head->cycle_inserted, Pipeline->EX_queue->head->instructionType,
+            Pipeline->EX_queue->head->instruction_dependency[0], Pipeline->EX_queue->head->instruction_dependency[1]));
     
-        Delete_Instruction(Pipeline->EX_queue);
+            Delete_Instruction(Pipeline->EX_queue);
+
+        } else {
+
+            break;
+        }
     }
 
 }
@@ -235,7 +247,7 @@ void ProcessID(struct Pipeline *Pipeline, int width)
     
             Delete_Instruction(Pipeline->ID_queue);
 
-        } else {
+        } else { // stall
 
             break;
         }
