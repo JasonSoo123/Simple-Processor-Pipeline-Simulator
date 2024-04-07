@@ -183,7 +183,15 @@ void ProcessMEM(struct Pipeline *Pipeline, int width)
 
     while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) 
     {
+        if (Pipeline->MEM_queue->head->instructionType == 4) {
 
+            storing_port = 0;
+
+        } else if (Pipeline->MEM_queue->head->instructionType == 5) {
+
+            loading_port = 0;
+        }
+        
         Insert_Queue(Pipeline->WB_queue, NewInstruction(Pipeline->MEM_queue->head->instruction_address, 
         Pipeline->MEM_queue->head->cycle_inserted, Pipeline->MEM_queue->head->instructionType,
          Pipeline->MEM_queue->head->instruction_dependency[0], Pipeline->MEM_queue->head->instruction_dependency[1]));
@@ -196,17 +204,34 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 {
      while ((Pipeline->EX_queue->count != 0) && Pipeline->MEM_queue->count != width)
     {   
-        if (((Pipeline->ID_queue->head->instructionType == 1)) ||
-         ((Pipeline->ID_queue->head->instructionType == 2)) || 
-         ((Pipeline->ID_queue->head->instructionType == 3))
-         || ((Pipeline->ID_queue->head->instructionType == 4) && (storing_port == 0)) 
-         || ((Pipeline->ID_queue->head->instructionType == 5) && (loading_port == 0)) 
-         || (Pipeline->ID_queue->head->instructionType == 6)) {
+        if (((Pipeline->EX_queue->head->instructionType == 1)) ||
+         ((Pipeline->EX_queue->head->instructionType == 2)) || 
+         ((Pipeline->EX_queue->head->instructionType == 3))
+         || ((Pipeline->EX_queue->head->instructionType == 4) && (storing_port == 0)) 
+         || ((Pipeline->EX_queue->head->instructionType == 5) && (loading_port == 0)) 
+         || (Pipeline->EX_queue->head->instructionType == 6)) {
+
+            if (Pipeline->EX_queue->head->instructionType == 1) {
+
+                int_ALU = 0;
+
+            } else if (Pipeline->EX_queue->head->instructionType == 2) {
+
+                ftp_ALU = 0;
+
+            } else if (Pipeline->EX_queue->head->instructionType == 4) {
+
+                storing_port = 1;
+
+            } else if (Pipeline->EX_queue->head->instructionType == 5) {
+
+                loading_port = 1;
+            }
 
             Insert_Queue(Pipeline->MEM_queue, NewInstruction(Pipeline->EX_queue->head->instruction_address, 
             Pipeline->EX_queue->head->cycle_inserted, Pipeline->EX_queue->head->instructionType,
             Pipeline->EX_queue->head->instruction_dependency[0], Pipeline->EX_queue->head->instruction_dependency[1]));
-    
+
             Delete_Instruction(Pipeline->EX_queue);
 
         } else {
