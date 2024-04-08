@@ -309,10 +309,54 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
 void Simulate_Cycle(struct Pipeline *Pipeline, int width){
 
+    struct Instruction *temp = Pipeline->WB_queue->head;
+    cout << "Proccessing WB " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessWB(Pipeline, width);
+
+    temp = Pipeline->MEM_queue->head;
+    cout << "Proccessing MEM " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessMEM(Pipeline, width);
+
+    temp = Pipeline->EX_queue->head;
+    cout << "Proccessing EX " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessEX(Pipeline, width);
+
+    temp = Pipeline->ID_queue->head;
+    cout << "Proccessing ID " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessID(Pipeline, width);
+
+    temp = Pipeline->IF_queue->head;
+    cout << "Proccessing IF " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessIF(Pipeline, width);
 
     Pipeline->cycle_count++;
