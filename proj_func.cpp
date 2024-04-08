@@ -309,6 +309,8 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
 void Simulate_Cycle(struct Pipeline *Pipeline, int width){
 
+    cout << "Cycle: " << Pipeline->cycle_count << endl;
+
     struct Instruction *temp = Pipeline->WB_queue->head;
     cout << "Proccessing WB " << endl;
     while (temp != NULL) {

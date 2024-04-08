@@ -68,13 +68,13 @@ int main(int argc, char* argv[])
                 struct Instruction *newInstruction = NewInstruction(token_array[0],
                 pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2]);
 
-                cout << "Instruction " << j << endl;
-                cout << "address: " << newInstruction->instruction_address << endl;
-                cout << "type: " << newInstruction->instructionType << endl;
-                cout << "cycle inserted: " << newInstruction->cycle_inserted << endl;
-                cout << "dependency 1: " << newInstruction->instruction_dependency[0] << endl;
-                cout << "dependency 2: " << newInstruction->instruction_dependency[1] << endl;
-                cout << endl;
+                //cout << "Instruction " << j << endl;
+                //cout << "address: " << newInstruction->instruction_address << endl;
+                //cout << "type: " << newInstruction->instructionType << endl;
+                //cout << "cycle inserted: " << newInstruction->cycle_inserted << endl;
+                //cout << "dependency 1: " << newInstruction->instruction_dependency[0] << endl;
+                //cout << "dependency 2: " << newInstruction->instruction_dependency[1] << endl;
+                //cout << endl;
 
                 if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
                 {
@@ -85,6 +85,14 @@ int main(int argc, char* argv[])
                         pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1]);
                         Insert_Queue(pipeline->IF_queue, newInstruction);
                         Delete_Instruction(pipeline->stall_queue);
+                    }
+                }
+
+                if (isBranchin_IF_ID_EX(pipeline)) {
+                    int x = pipeline->IF_queue->count;
+                    for (int i = x; i < width; i ++) {
+
+                        Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0)); // place a dummy node
                     }
                 }
                 if ((pipeline->IF_queue->count != width)) 
@@ -104,7 +112,8 @@ int main(int argc, char* argv[])
 
                         }  else {
 
-                             Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0)); // place a dummy node
+                            Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0)); // place a dummy node
+                            Insert_Queue(pipeline->stall_queue, newInstruction);
                         }
                     }
                 }
@@ -151,7 +160,7 @@ int main(int argc, char* argv[])
         infile.close(); 
         cout << pipeline->stall_queue->count << endl;
         
-       for (int i = 0; i < 4; i++) {
+        while (pipeline->finish_count < simulating_instruction) {
             cout << "Starting to Simulate a Cycle..." << endl;
             
             while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
@@ -162,9 +171,10 @@ int main(int argc, char* argv[])
                 Insert_Queue(pipeline->IF_queue, newInstruction);
                 Delete_Instruction(pipeline->stall_queue);
             }
-            cout << pipeline->finish_count << endl;
             Simulate_Cycle(pipeline, width);
         }
+
+        cout << pipeline->cycle_count << endl;
         
 
     } 
