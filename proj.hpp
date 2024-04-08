@@ -16,7 +16,7 @@ struct Instruction
     unsigned long instruction_address;
     int cycle_inserted;
     int instructionType; // 1 Integer, 2 Floating, 3 branch, 4 load, 5 store, 6 dummy node
-    unsigned long instruction_dependency[2]; // 0 if none, else the instruction number it is depended on.
+    unsigned long instruction_dependency[3]; // 0 if none, else the instruction number it is depended on.
     struct Instruction *next;
     struct Instruction *prev;
 
@@ -56,7 +56,8 @@ struct Pipeline
 };
 
 struct Pipeline *InitalizePipeline(int width);
-struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type, unsigned long dependency1, unsigned long dependency2) ;
+struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type,
+unsigned long dependency1, unsigned long dependency2, unsigned long dependency3);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);
@@ -68,6 +69,6 @@ void ProcessIF(struct Pipeline *Pipeline, int width);
 void Simulate_Cycle(struct Pipeline *Pipeline, int width);
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
 void FreePipeline(struct Pipeline *Pipeline);
-void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction);
+void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction, string filename);
 
 #endif
