@@ -27,8 +27,6 @@ int main(int argc, char* argv[])
         
         struct Pipeline * pipeline = InitalizePipeline(width);
 
-        cout << "Pipeline Initalized" << endl;
-
         unsigned long token_array[3] = {0x0, 0x0, 0x0};
         int token_instruction_type = 0;
 
@@ -64,17 +62,9 @@ int main(int argc, char* argv[])
                     i++;
                 }
                 
-                // proccess the instruction with tokens
                 struct Instruction *newInstruction = NewInstruction(token_array[0],
                 pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2]);
 
-                //cout << "Instruction " << j << endl;
-                //cout << "address: " << newInstruction->instruction_address << endl;
-                //cout << "type: " << newInstruction->instructionType << endl;
-                //cout << "cycle inserted: " << newInstruction->cycle_inserted << endl;
-                //cout << "dependency 1: " << newInstruction->instruction_dependency[0] << endl;
-                //cout << "dependency 2: " << newInstruction->instruction_dependency[1] << endl;
-                //cout << endl;
 
                 if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
                 {
@@ -127,25 +117,12 @@ int main(int argc, char* argv[])
                 token_array[1] = 0x0;
                 token_array[2] = 0x0;
                 token_instruction_type = 0;
-                /*
-                cout << "Counts: " << endl;
-                cout << pipeline->IF_queue->count << " " << pipeline->IF_queue->head->instruction_address << endl;
-                cout << pipeline->ID_queue->count << " " << pipeline->ID_queue->head->instruction_address << endl;
-                cout << pipeline->EX_queue->count << " " << pipeline->EX_queue->head->instruction_address<< endl;
-
-                if (pipeline->MEM_queue->head != NULL) {
-
-                    cout << pipeline->MEM_queue->count << " " << pipeline->MEM_queue->head->instruction_address<< endl;
-                } else {
-                    cout << "mem spot " << endl;
-                }
-                cout << pipeline->WB_queue->count << " " << pipeline->WB_queue->head->instruction_address<< endl;
-                */
+              
                 if ((pipeline->IF_queue->count == width) && (pipeline->ID_queue->count == width) &&
                 (pipeline->EX_queue->count == width) && (pipeline->MEM_queue->count == width) &&
                 (pipeline->WB_queue->count == width)) 
                 {
-                    cout << "Starting to Simulate a Cycle..." << endl;
+                    
                     Simulate_Cycle(pipeline, width);
 
                 }
@@ -158,10 +135,9 @@ int main(int argc, char* argv[])
         }
       
         infile.close(); 
-        cout << pipeline->stall_queue->count << endl;
         
         while (pipeline->finish_count < simulating_instruction) {
-            cout << "Starting to Simulate a Cycle..." << endl;
+            
             
             while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
             {
@@ -173,10 +149,10 @@ int main(int argc, char* argv[])
             }
             Simulate_Cycle(pipeline, width);
         }
-
-        cout << pipeline->cycle_count << endl;
         
-
+        PrintStatistics(pipeline, width, starting_instruction, simulating_instruction);
+        FreePipeline(pipeline);
+        
     } 
     else 
     {

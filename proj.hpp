@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <iomanip> 
 
 using namespace std;
 
@@ -68,5 +69,7 @@ void ProcessID(struct Pipeline *Pipeline, int width);
 void ProcessIF(struct Pipeline *Pipeline, int width);
 void Simulate_Cycle(struct Pipeline *Pipeline, int width);
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
+void FreePipeline(struct Pipeline *Pipeline);
+void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction);
 
 #endif

@@ -309,56 +309,10 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
 void Simulate_Cycle(struct Pipeline *Pipeline, int width){
 
-    cout << "Cycle: " << Pipeline->cycle_count << endl;
-
-    struct Instruction *temp = Pipeline->WB_queue->head;
-    cout << "Proccessing WB " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
     ProcessWB(Pipeline, width);
-
-    temp = Pipeline->MEM_queue->head;
-    cout << "Proccessing MEM " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
     ProcessMEM(Pipeline, width);
-
-    temp = Pipeline->EX_queue->head;
-    cout << "Proccessing EX " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
     ProcessEX(Pipeline, width);
-
-    temp = Pipeline->ID_queue->head;
-    cout << "Proccessing ID " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
     ProcessID(Pipeline, width);
-
-    temp = Pipeline->IF_queue->head;
-    cout << "Proccessing IF " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
     ProcessIF(Pipeline, width);
 
     Pipeline->cycle_count++;
@@ -397,4 +351,67 @@ bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
     }
     
     return false;
+}
+
+void FreePipeline(struct Pipeline *Pipeline) {
+
+    struct Instruction *temp = Pipeline->IF_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+
+    temp = Pipeline->ID_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+    temp = Pipeline->EX_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+
+    temp = Pipeline->MEM_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+
+    temp = Pipeline->WB_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+
+    temp = Pipeline->stall_queue->head;
+    while (temp != NULL) {
+        struct Instruction *toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+}
+
+void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction) {
+
+    cout << "Running Pipeline with W-wide superscalar: " << width <<
+       ". Starting Simulation at Instruction " <<  starting_instruction << 
+       " and Simulating " << simulating_instruction << " instructions..." << endl;
+
+    cout << endl;
+    cout << "Total execution time (Cycles): " << Pipeline->cycle_count << endl;
+    cout << endl;
+    cout << "Output Histogram:" << endl;
+    cout << endl;
+    cout << "Integer Instructions(Completed): "<< ((double)Pipeline->integer_count/Pipeline->finish_count*100) << "%" << endl;
+    cout << "Floating Instructions(Completed): "<< ((double)Pipeline->floating_count/Pipeline->finish_count*100) << "%" << endl;
+    cout << "Branch Instructions(Completed): "<< ((double)Pipeline->branch_count/Pipeline->finish_count*100) << "%" << endl;
+    cout << "Load Instructions(Completed): "<< ((double)Pipeline->load_count/Pipeline->finish_count*100) << "%" << endl;
+    cout << "Store Instructions(Completed): "<< ((double)Pipeline->store_count/Pipeline->finish_count*100) << "%" << endl;
+    cout << endl;
 }
