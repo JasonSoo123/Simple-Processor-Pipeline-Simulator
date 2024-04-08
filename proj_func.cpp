@@ -76,7 +76,6 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->cycle_count = 0;
     pipeline->latest_instruction_address_finished = 0x0;
     pipeline->finish_count = 0;
-    pipeline->instructions_count = 0;
 
     pipeline->integer_count = 0;
     pipeline->floating_count = 0;

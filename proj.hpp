@@ -43,8 +43,6 @@ struct Pipeline
 
     unsigned long latest_instruction_address_finished;
 
-    int instructions_count; // number of instructions in the whole pipeline
-
     int cycle_count; //current cycle 
 
     int finish_count;//number of instructions finished

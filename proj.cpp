@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
                     if (pipeline->IF_queue->head == NULL) {
 
                         Insert_Queue(pipeline->IF_queue, newInstruction);
-                        pipeline->instructions_count++;
+          
 
                     } else {
                         
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
                         (pipeline->IF_queue->tail->instructionType != 6)) {
 
                             Insert_Queue(pipeline->IF_queue, newInstruction);
-                            pipeline->instructions_count++;
+                            
 
                         }  else {
 
@@ -129,11 +129,11 @@ int main(int argc, char* argv[])
             }
             
             j++;
-            if (pipeline->instructions_count >= simulating_instruction){
+            
+            if (j >= starting_instruction + simulating_instruction){
                 break;
             }
         }
-      
         infile.close(); 
         
         while (pipeline->finish_count < simulating_instruction) {
