@@ -75,12 +75,13 @@ int main(int argc, char* argv[])
                 cout << "dependency 1: " << newInstruction->instruction_dependency[0] << endl;
                 cout << "dependency 2: " << newInstruction->instruction_dependency[1] << endl;
                 cout << endl;
+
                 if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
                 {
                     while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
                     {
                         struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
-                        pipeline->stall_queue->head->instructionType, pipeline->stall_queue->head->cycle_inserted, 
+                        pipeline->stall_queue->head->cycle_inserted, pipeline->stall_queue->head->instructionType, 
                         pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1]);
                         Insert_Queue(pipeline->IF_queue, newInstruction);
                         Delete_Instruction(pipeline->stall_queue);
@@ -146,20 +147,26 @@ int main(int argc, char* argv[])
                 break;
             }
         }
-        
+        int cool = 0;
         infile.close(); 
         while (pipeline->finish_count < simulating_instruction) {
             cout << "Starting to Simulate a Cycle..." << endl;
-
+            cool++;
             while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
             {
                 struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
-                pipeline->stall_queue->head->instructionType, pipeline->stall_queue->head->cycle_inserted, 
+                pipeline->stall_queue->head->cycle_inserted, pipeline->stall_queue->head->instructionType,
                 pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1]);
                 Insert_Queue(pipeline->IF_queue, newInstruction);
                 Delete_Instruction(pipeline->stall_queue);
             }
-
+            cout << pipeline->finish_count << endl;
+            cout << pipeline->stall_queue->count<< endl;
+             cout << pipeline->IF_queue->count<< endl;
+             cout << pipeline->ID_queue->count<< endl;
+             cout << pipeline->EX_queue->count<< endl;
+             cout << pipeline->MEM_queue->count<< endl;
+             cout << pipeline->WB_queue->count<< endl;
             Simulate_Cycle(pipeline, width);
         }
         cout << pipeline->cycle_count << endl;
