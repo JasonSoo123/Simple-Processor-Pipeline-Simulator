@@ -157,7 +157,6 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
             } else  if (Pipeline->WB_queue->head->instructionType == 3) {
                 
-                branch_ex = 0;
                 Pipeline->branch_count++;
 
             } else  if (Pipeline->WB_queue->head->instructionType == 4) {
@@ -230,6 +229,10 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 
                 ftp_ALU = 0;
 
+            } else if (Pipeline->EX_queue->head->instructionType == 3) {
+
+                branch_ex = 0;
+                
             } else if (Pipeline->EX_queue->head->instructionType == 4) {
 
                 storing_port = 1;
