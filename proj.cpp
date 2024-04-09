@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
         unsigned long token_array[4] = {0x0, 0x0, 0x0, 0x0};
         int token_instruction_type = 0;
 
-        int j = 0;
+        int j = 1;
 
 
         while (getline(infile, line)) 
