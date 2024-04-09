@@ -31,6 +31,19 @@ struct InstructionQueue
 
 };
 
+struct Address
+{
+    unsigned long address;
+    struct Address *next;
+    struct Address *prev;
+};
+
+struct AddressQueue
+{
+    struct Address *head;
+    struct Address *tail;
+};
+
 struct Pipeline
 {
 
@@ -40,6 +53,8 @@ struct Pipeline
     struct InstructionQueue *EX_queue;
     struct InstructionQueue *MEM_queue;
     struct InstructionQueue *WB_queue;
+
+    struct AddressQueue *finsh_address_queue;
 
     unsigned long latest_instruction_address_finished;
 
@@ -59,6 +74,8 @@ struct Pipeline *InitalizePipeline(int width);
 struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type,
 unsigned long dependency1, unsigned long dependency2, unsigned long dependency3);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
+void Insert_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
+void Delete_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
 unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);
 void ProcessWB(struct Pipeline *Pipeline, int width);

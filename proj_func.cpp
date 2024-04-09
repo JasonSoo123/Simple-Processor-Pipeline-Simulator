@@ -27,6 +27,86 @@ void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction 
     InstructionQueue->count++;
 }
 
+void Insert_Address(struct AddressQueue *address_queue, unsigned long instruction_address) {
+
+    struct Address *newAddress = new struct Address;
+    newAddress->address = instruction_address;
+    newAddress->next = NULL;
+
+    if (address_queue->head == NULL) {
+
+        address_queue->head = newAddress;
+        address_queue->tail = newAddress;
+
+    } else {
+        // Find the correct position to insert the new address
+        struct Address *current = address_queue->head;
+        struct Address *prev = NULL;
+
+        while (current != NULL && current->address < instruction_address) {
+            prev = current;
+            current = current->next;
+        }
+
+        if (prev == NULL) {
+
+            newAddress->next = address_queue->head;
+            address_queue->head = newAddress;
+
+        } else {
+
+            prev->next = newAddress;
+            newAddress->next = current;
+        }
+        if (current == NULL) {
+            address_queue->tail = newAddress;
+        }
+    }
+}
+
+void Delete_Address(struct AddressQueue *address_queue, unsigned long instruction_address) {
+
+    if (address_queue->head == NULL) {
+
+        return;
+    }
+
+    if (address_queue->head->address == instruction_address) {
+
+        struct Address *temp = address_queue->head;
+        address_queue->head = address_queue->head->next;
+        delete temp;
+
+        if (address_queue->head == NULL) {
+
+            address_queue->tail = NULL;
+        }
+
+        return;
+    }
+
+    struct Address *current = address_queue->head;
+    struct Address *prev = NULL;
+    while (current != NULL && current->address != instruction_address) {
+
+        prev = current;
+        current = current->next;
+    }
+
+    if (current == NULL) {
+
+        return;
+    }
+
+    prev->next = current->next;
+    delete current;
+
+    if (prev->next == NULL) {
+
+        address_queue->tail = prev;
+    }
+}
+
 struct Pipeline *InitalizePipeline(int width){
 
     struct Pipeline *pipeline = new struct Pipeline;
@@ -35,6 +115,10 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->stall_queue->head = NULL;
     pipeline->stall_queue->tail = NULL;
     pipeline->stall_queue->count = 0;
+
+    pipeline->finsh_address_queue = new struct AddressQueue;
+    pipeline->finsh_address_queue->head = NULL;
+    pipeline->finsh_address_queue->tail = NULL;
 
     pipeline->IF_queue = new struct InstructionQueue;
     pipeline->IF_queue->head = NULL;
@@ -232,7 +316,7 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
             } else if (Pipeline->EX_queue->head->instructionType == 3) {
 
                 branch_ex = 0;
-                
+
             } else if (Pipeline->EX_queue->head->instructionType == 4) {
 
                 storing_port = 1;
@@ -454,6 +538,13 @@ void FreePipeline(struct Pipeline *Pipeline) {
     while (temp != NULL) {
         struct Instruction *toDelete = temp;
         temp = temp->next;
+        delete toDelete;
+    }
+
+    struct Address *tempA = Pipeline->finsh_address_queue->head;
+    while (tempA != NULL) {
+        struct Address *toDelete = tempA;
+        tempA = tempA->next;
         delete toDelete;
     }
 }
