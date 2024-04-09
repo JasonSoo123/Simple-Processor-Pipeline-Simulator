@@ -166,21 +166,44 @@ int main(int argc, char* argv[])
         
       while (pipeline->finish_count < simulating_instruction) {
 
+            // if there is a branch that hasnt excuted yet in the pipeline
             if (isBranchin_IF_ID_EX(pipeline)) {
+
                 int x = pipeline->IF_queue->count;
                 for (int i = x; i < width; i ++) {
 
                     Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
                 }
             }
+            
             while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
-            {
-                struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
-                pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
-                pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
-                pipeline->stall_queue->head->instruction_dependency[2]);
-                Insert_Queue(pipeline->IF_queue, newInstruction);
-                Delete_Instruction(pipeline->stall_queue);
+            {   
+                if (pipeline->IF_queue->head == NULL) {
+
+                    struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                    pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
+                    pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
+                    pipeline->stall_queue->head->instruction_dependency[2]);
+                    Insert_Queue(pipeline->IF_queue, newInstruction);
+                    Delete_Instruction(pipeline->stall_queue);
+
+                } else {
+
+                    if ((pipeline->IF_queue->tail->instructionType != 3) && 
+                        (pipeline->IF_queue->tail->instructionType != 6)) {
+
+                        struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                        pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
+                        pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
+                        pipeline->stall_queue->head->instruction_dependency[2]);
+                        Insert_Queue(pipeline->IF_queue, newInstruction);
+                        Delete_Instruction(pipeline->stall_queue);
+
+                    } else {
+
+                        Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                    }
+                }
             }
             Simulate_Cycle(pipeline, width);
         }
