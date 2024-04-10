@@ -75,22 +75,22 @@ int main(int argc, char* argv[])
                     // if there are dependencies
                     if ((token_array[1] != 0x0) || (token_array[2] != 0x0) || (token_array[3] != 0x0)){
             
-                        // if you cannot find in the pipeline or the dependency is finished already
-                        if (!isAddressinPipeline(pipeline, token_array[1])
+                        // if you cannot find in the pipeline and stall. or the dependency is finished already
+                        if ((!isAddressinPipeline(pipeline, token_array[1]) && !isAddressStalled(pipeline->stall_queue, token_array[1]))
                         || isAddressFinished(pipeline->finsh_address_queue, token_array[1])) {
                             
                             token_array[1] = 0x0; // reset to no dependency
                         }
 
-                        // if you cannot find in the pipeline or the dependency is finished already
-                        if (!isAddressinPipeline(pipeline, token_array[2])
+                        // if you cannot find in the pipeline and stall. or the dependency is finished already
+                        if ((!isAddressinPipeline(pipeline, token_array[2]) && !isAddressStalled(pipeline->stall_queue, token_array[2]))
                         || isAddressFinished(pipeline->finsh_address_queue, token_array[2])) {
                             
                             token_array[2] = 0x0; // reset to no dependency
                         }
 
-                        // if you cannot find in the pipeline or the dependency is finished already
-                        if (!isAddressinPipeline(pipeline, token_array[3])
+                        // if you cannot find in the pipeline and stall. or the dependency is finished already
+                        if ((!isAddressinPipeline(pipeline, token_array[3]) && !isAddressStalled(pipeline->stall_queue, token_array[3]))
                         || isAddressFinished(pipeline->finsh_address_queue, token_array[3])) {
                             
                             token_array[3] = 0x0; // reset to no dependency

@@ -231,7 +231,7 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
                 Pipeline->store_count++;
             }
-            Insert_Address(Pipeline->finsh_address_queue, Pipeline->WB_queue->head->instruction_address);
+
             Delete_Instruction(Pipeline->WB_queue);
             Pipeline->finish_count++;
             
@@ -248,11 +248,11 @@ void ProcessMEM(struct Pipeline *Pipeline, int width)
     while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) 
     {
         if (Pipeline->MEM_queue->head->instructionType == 4) {
-
+            Insert_Address(Pipeline->finsh_address_queue, Pipeline->MEM_queue->head->instruction_address);
             storing_port = 0;
 
         } else if (Pipeline->MEM_queue->head->instructionType == 5) {
-
+            Insert_Address(Pipeline->finsh_address_queue, Pipeline->MEM_queue->head->instruction_address);
             loading_port = 0;
         }
         
@@ -280,14 +280,17 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 
             if (Pipeline->EX_queue->head->instructionType == 1) {
 
+                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
                 int_ALU = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 2) {
 
+                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
                 ftp_ALU = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 3) {
 
+                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
                 branch_ex = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 4) {
@@ -383,55 +386,55 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
 
 void Simulate_Cycle(struct Pipeline *Pipeline, int width){
-    // cout << "Cycle: " << Pipeline->cycle_count << endl; 
-    // struct Instruction *temp = Pipeline->WB_queue->head;
-    // cout << "WB: " << endl;
-    // while (temp != NULL) {
-    //     cout << temp->instruction_address << endl;
-    //     cout << temp->instructionType << endl;
-    //     cout << endl;
-    //     temp = temp->next;
-    // }
+    cout << "Cycle: " << Pipeline->cycle_count << endl; 
+    struct Instruction *temp = Pipeline->WB_queue->head;
+    cout << "WB: " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessWB(Pipeline, width);
 
-    // temp = Pipeline->MEM_queue->head;
-    // cout << "MEM: " << endl;
-    // while (temp != NULL) {
-    //     cout << temp->instruction_address << endl;
-    //     cout << temp->instructionType << endl;
-    //     cout << endl;
-    //     temp = temp->next;
-    // }
+    temp = Pipeline->MEM_queue->head;
+    cout << "MEM: " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessMEM(Pipeline, width);
 
-    // temp = Pipeline->EX_queue->head;
-    // cout << "EX: " << endl;
-    // while (temp != NULL) {
-    //     cout << temp->instruction_address << endl;
-    //     cout << temp->instructionType << endl;
-    //     cout << endl;
-    //     temp = temp->next;
-    // }
+    temp = Pipeline->EX_queue->head;
+    cout << "EX: " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessEX(Pipeline, width);
 
-    // temp = Pipeline->ID_queue->head;
-    // cout << "ID: " << endl;
-    // while (temp != NULL) {
-    //     cout << temp->instruction_address << endl;
-    //     cout << temp->instructionType << endl;
-    //     cout << endl;
-    //     temp = temp->next;
-    // }
+    temp = Pipeline->ID_queue->head;
+    cout << "ID: " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessID(Pipeline, width);
 
-    // temp = Pipeline->IF_queue->head;
-    // cout << "IF: " << endl;
-    // while (temp != NULL) {
-    //     cout << temp->instruction_address << endl;
-    //     cout << temp->instructionType << endl;
-    //     cout << endl;
-    //     temp = temp->next;
-    // }
+    temp = Pipeline->IF_queue->head;
+    cout << "IF: " << endl;
+    while (temp != NULL) {
+        cout << temp->instruction_address << endl;
+        cout << temp->instructionType << endl;
+        cout << endl;
+        temp = temp->next;
+    }
     ProcessIF(Pipeline, width);
 
     Pipeline->cycle_count++;
@@ -531,16 +534,28 @@ bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long 
     struct Address *current = finish_address_queue->head;
     // (inOrder queue so if current goes past the address it is not in here)
     while ((current != NULL) && (current->address <= address)) {
-        cout << "test" << endl;
+        
         if (current->address == address) {
+            
             return true;
         }
         current = current->next;
     }
-
     return false;
 }
+bool isAddressStalled(struct InstructionQueue *stall_queue, unsigned long address){
+    struct Instruction *current = stall_queue->tail;
 
+    while (current != NULL) {
+
+        if (current->instruction_address == address) {
+
+            return true;
+        }
+        current = current->prev;
+    }
+    return false;
+}
 void FreePipeline(struct Pipeline *Pipeline) {
 
     struct Instruction *temp = Pipeline->IF_queue->head;

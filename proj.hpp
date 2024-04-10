@@ -86,6 +86,7 @@ void Simulate_Cycle(struct Pipeline *Pipeline, int width);
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
 bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address);
 bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long address);
+bool isAddressStalled(struct InstructionQueue *stall_queue, unsigned long address);
 void FreePipeline(struct Pipeline *Pipeline);
 void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction, string filename);
 
