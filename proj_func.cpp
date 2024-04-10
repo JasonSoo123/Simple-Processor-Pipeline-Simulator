@@ -498,6 +498,74 @@ bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
     return false;
 }
 
+bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address) {
+
+    struct Instruction *current = Pipeline->IF_queue->head;
+    while (current != NULL) {
+
+        if (current->instruction_address == address) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->ID_queue->head;
+    while (current != NULL) {
+
+        if (current->instruction_address == address) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->EX_queue->head;
+    while (current != NULL) {
+
+        if (current->instruction_address == address) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->MEM_queue->head;
+    while (current != NULL) {
+
+        if (current->instruction_address == address) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    current = Pipeline->WB_queue->head;
+    while (current != NULL) {
+
+        if (current->instruction_address == address) 
+        {
+            return true;
+        }
+        current = current->next;
+    }
+
+    return false;
+}
+bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long address) {
+
+    struct Address *current = finish_address_queue->head;
+    // (inOrder queue so if current goes past the address it is not in here)
+    while ((current != NULL) && (current->address <= address)) {
+
+        if (current->address == address) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void FreePipeline(struct Pipeline *Pipeline) {
 
     struct Instruction *temp = Pipeline->IF_queue->head;

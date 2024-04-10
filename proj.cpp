@@ -1,7 +1,7 @@
 #include "proj.hpp"
 
 int instruction_count = 0;
-unsigned long first_instruction_address = 0x0;
+unsigned long last_instruction_address = 0x0;
 
 int main(int argc, char* argv[]) 
 {
@@ -66,27 +66,41 @@ int main(int argc, char* argv[])
 
                 // if it is the first instruction throw out dependencies.
                 if (instruction_count == 0) {
-                    first_instruction_address = token_array[0];
+                    last_instruction_address = token_array[0];
                     token_array[1] = 0x0;
                     token_array[2] = 0x0;
                     token_array[3] = 0x0;
                 }
 
-                // if the dependencies you are checking is less then your first instruction address then remove it.
-                // check also if there is a case where the dependency is somehow larger then the original address reset it.
-                if ((token_array[1] < first_instruction_address) || (token_array[1] >= token_array[0])) {
+                // if there are dependencies
+                if ((token_array[1] != 0x0) || (token_array[2] != 0x0) || (token_array[3] != 0x0)){
+                    
+                    // if you cannot find the first dependency anywhere
+                    if (!isAddressinPipeline(pipeline, token_array[1]) &&
+                     !isAddressFinished(pipeline->finsh_address_queue, token_array[1])) {
+                        
+                        token_array[1] = 0x0; // reset to no dependency
+                    }
 
-                    token_array[1] = 0x0;
+                    // if you cannot find the second dependency anywhere
+                    if (!isAddressinPipeline(pipeline, token_array[2]) &&
+                     !isAddressFinished(pipeline->finsh_address_queue, token_array[2])) {
+                        
+                        token_array[2] = 0x0; // reset to no dependency
+                    }
+
+                    // if you cannot find the third dependency anywhere
+                    if (!isAddressinPipeline(pipeline, token_array[3]) &&
+                     !isAddressFinished(pipeline->finsh_address_queue, token_array[3])) {
+                        
+                        token_array[3] = 0x0; // reset to no dependency
+                    }
+
                 }
-                if (token_array[2] < first_instruction_address || (token_array[2] >= token_array[0])) {
 
-                    token_array[2] = 0x0;
+                if (isAddressFinished(pipeline->finsh_address_queue, token_array[0])) {
+                    
                 }
-                if (token_array[3] < first_instruction_address || (token_array[3] >= token_array[0])) {
-
-                    token_array[3] = 0x0;
-                }
-
                 struct Instruction *newInstruction = NewInstruction(token_array[0],
                 pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2], token_array[3]);
 
