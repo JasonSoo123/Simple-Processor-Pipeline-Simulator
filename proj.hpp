@@ -76,7 +76,6 @@ unsigned long dependency1, unsigned long dependency2, unsigned long dependency3)
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
 void Insert_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
 void Delete_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
-unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue);
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);
 void ProcessWB(struct Pipeline *Pipeline, int width);
 void ProcessMEM(struct Pipeline *Pipeline, int width);

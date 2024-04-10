@@ -24,206 +24,265 @@ int main(int argc, char* argv[])
         if ((width>4)||(width<1)||(starting_instruction<0)||(simulating_instruction<0))
         {
             cout << "Input Error. Terminating Simulation...\n" << endl;
-        }
 
-        
-        struct Pipeline * pipeline = InitalizePipeline(width);
+        } else {
 
-        unsigned long token_array[4] = {0x0, 0x0, 0x0, 0x0};
-        int token_instruction_type = 0;
+            struct Pipeline * pipeline = InitalizePipeline(width);
 
-        int j = 1;
+            unsigned long token_array[4] = {0x0, 0x0, 0x0, 0x0};
+            int token_instruction_type = 0;
+
+            int j = 1;
 
 
-        while (getline(infile, line)) 
-        {
-            if (j >= starting_instruction && j < starting_instruction + simulating_instruction) {
-
-                istringstream iss(line);
-                string token;
+            while (getline(infile, line)) 
+            {
+                if (j >= starting_instruction && j < starting_instruction + simulating_instruction) {
                 
-                int i = 0;
-                while (getline(iss, token, ',')) 
-                {
+                    istringstream iss(line);
+                    string token;
+                    
+                    int i = 0;
+                    while (getline(iss, token, ',')) 
+                    {
 
-                    if (i != 1) 
-                    {   
-                        if (i == 0) {
+                        if (i != 1) 
+                        {   
+                            if (i == 0) {
 
-                            token_array[i] = stoul(token, nullptr, 16);
-                        } else {
+                                token_array[i] = stoul(token, nullptr, 16);
+                            } else {
 
-                            token_array[i-1] = stoul(token, nullptr, 16);
+                                token_array[i-1] = stoul(token, nullptr, 16);
+                            }
+
+                        } 
+                        else 
+                        {
+                            token_instruction_type = stoi(token); 
+                        }
+                        i++;
+                    }
+                
+                    // if it is the first instruction throw out dependencies.
+                    if (instruction_count == 0) {
+                        last_instruction_address = token_array[0];
+                        token_array[1] = 0x0;
+                        token_array[2] = 0x0;
+                        token_array[3] = 0x0;
+                    }
+                
+                    // if there are dependencies
+                    if ((token_array[1] != 0x0) || (token_array[2] != 0x0) || (token_array[3] != 0x0)){
+            
+                        // if you cannot find in the pipeline or the dependency is finished already
+                        if (!isAddressinPipeline(pipeline, token_array[1])
+                        || isAddressFinished(pipeline->finsh_address_queue, token_array[1])) {
+                            
+                            token_array[1] = 0x0; // reset to no dependency
                         }
 
-                    } 
-                    else 
-                    {
-                        token_instruction_type = stoi(token); 
-                    }
-                    i++;
-                }
+                        // if you cannot find in the pipeline or the dependency is finished already
+                        if (!isAddressinPipeline(pipeline, token_array[2])
+                        || isAddressFinished(pipeline->finsh_address_queue, token_array[2])) {
+                            
+                            token_array[2] = 0x0; // reset to no dependency
+                        }
 
-                // if it is the first instruction throw out dependencies.
-                if (instruction_count == 0) {
-                    last_instruction_address = token_array[0];
+                        // if you cannot find in the pipeline or the dependency is finished already
+                        if (!isAddressinPipeline(pipeline, token_array[3])
+                        || isAddressFinished(pipeline->finsh_address_queue, token_array[3])) {
+                            
+                            token_array[3] = 0x0; // reset to no dependency
+                        }
+                    }
+
+                    struct Instruction *newInstruction = NewInstruction(token_array[0],
+                    pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2], token_array[3]);
+
+                    instruction_count++;
+
+                    // if there is something in the stall queue and no branch
+                    if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
+                    {   
+                        // while there is something in stall and IF is not full
+                        while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
+                        {   
+                    
+                            // if IF is empty
+                            if (pipeline->IF_queue->head == NULL) {
+
+                                struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                                pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
+                                pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
+                                pipeline->stall_queue->head->instruction_dependency[2]);
+
+                                // if the instruction address is being processed again, erase the address from the finish queu
+                                if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                                    cout << pipeline->finish_count << endl;
+                                    Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                }
+
+                                Insert_Queue(pipeline->IF_queue, newInstruction);
+                                Delete_Instruction(pipeline->stall_queue);
+
+                            } else {
+                                
+                                // if it is not a branch or not a dummy fill procced 
+                                if ((pipeline->IF_queue->tail->instructionType != 3) && 
+                                    (pipeline->IF_queue->tail->instructionType != 6)) {
+
+                                    struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                                    pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
+                                    pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
+                                    pipeline->stall_queue->head->instruction_dependency[2]);
+                                    // if the instruction address is being processed again, erase the address from the finish queu
+                                    if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                                
+                                        Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                    }
+                                    Insert_Queue(pipeline->IF_queue, newInstruction);
+                                    Delete_Instruction(pipeline->stall_queue);
+
+                                } else {
+
+                                    Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                                }
+                            }
+                        }
+                    }
+                
+                    if (isBranchin_IF_ID_EX(pipeline)) {
+                        int x = pipeline->IF_queue->count;
+                        for (int i = x; i < width; i ++) {
+
+                            Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                        }
+                    }
+                    if ((pipeline->IF_queue->count != width)) 
+                    {   
+                        if (pipeline->IF_queue->head == NULL) {
+                            
+                            // if the instruction address is being processed again, erase the address from the finish queu
+                            if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                        
+                                Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                            }
+                            Insert_Queue(pipeline->IF_queue, newInstruction);
+            
+
+                        } else {
+                            
+                            if ((pipeline->IF_queue->tail->instructionType != 3) && 
+                            (pipeline->IF_queue->tail->instructionType != 6)) {
+                                
+                                // if the instruction address is being processed again, erase the address from the finish queu
+                                if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                        
+                                    Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                }
+                                Insert_Queue(pipeline->IF_queue, newInstruction);
+                                
+
+                            }  else {
+
+                                Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                                Insert_Queue(pipeline->stall_queue, newInstruction);
+                            }
+                        }
+                    }
+                    else 
+                    {   
+                        Insert_Queue(pipeline->stall_queue, newInstruction);
+                    }
+                    
+                    // reset the token array
+                    token_array[0] = 0x0;
                     token_array[1] = 0x0;
                     token_array[2] = 0x0;
                     token_array[3] = 0x0;
-                }
-
-                // if there are dependencies
-                if ((token_array[1] != 0x0) || (token_array[2] != 0x0) || (token_array[3] != 0x0)){
-                    
-                    // if you cannot find the first dependency anywhere
-                    if (!isAddressinPipeline(pipeline, token_array[1]) &&
-                     !isAddressFinished(pipeline->finsh_address_queue, token_array[1])) {
-                        
-                        token_array[1] = 0x0; // reset to no dependency
-                    }
-
-                    // if you cannot find the second dependency anywhere
-                    if (!isAddressinPipeline(pipeline, token_array[2]) &&
-                     !isAddressFinished(pipeline->finsh_address_queue, token_array[2])) {
-                        
-                        token_array[2] = 0x0; // reset to no dependency
-                    }
-
-                    // if you cannot find the third dependency anywhere
-                    if (!isAddressinPipeline(pipeline, token_array[3]) &&
-                     !isAddressFinished(pipeline->finsh_address_queue, token_array[3])) {
-                        
-                        token_array[3] = 0x0; // reset to no dependency
-                    }
-
-                }
-
-                if (isAddressFinished(pipeline->finsh_address_queue, token_array[0])) {
-                    
-                }
-                struct Instruction *newInstruction = NewInstruction(token_array[0],
-                pipeline->cycle_count, token_instruction_type, token_array[1], token_array[2], token_array[3]);
-
-                instruction_count++;
-
-                if ((pipeline->stall_queue->count > 0) && (!isBranchin_IF_ID_EX(pipeline)))
-                {
-                    while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
+                    token_instruction_type = 0;
+                
+                    if ((pipeline->IF_queue->count == width) && (pipeline->ID_queue->count == width) &&
+                    (pipeline->EX_queue->count == width) && (pipeline->MEM_queue->count == width) &&
+                    (pipeline->WB_queue->count == width)) 
                     {
-                        struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
-                        pipeline->cycle_count, pipeline->stall_queue->head->instructionType, 
-                        pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
-                        pipeline->stall_queue->head->instruction_dependency[2]);
-                        Insert_Queue(pipeline->IF_queue, newInstruction);
-                        Delete_Instruction(pipeline->stall_queue);
+                        
+                        Simulate_Cycle(pipeline, width);
+
                     }
                 }
+                
+                j++;
 
+                if (j >= starting_instruction + simulating_instruction){
+                    break;
+                }
+            }
+            infile.close(); 
+
+            while (pipeline->finish_count < simulating_instruction) {
+
+                // if there is a branch that hasnt excuted yet in the pipeline
                 if (isBranchin_IF_ID_EX(pipeline)) {
+
                     int x = pipeline->IF_queue->count;
                     for (int i = x; i < width; i ++) {
 
                         Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
                     }
                 }
-                if ((pipeline->IF_queue->count != width)) 
-                {   
-                    if (pipeline->IF_queue->head == NULL) {
-
-                        Insert_Queue(pipeline->IF_queue, newInstruction);
-          
-
-                    } else {
-                        
-                        if ((pipeline->IF_queue->tail->instructionType != 3) && 
-                        (pipeline->IF_queue->tail->instructionType != 6)) {
-
-                            Insert_Queue(pipeline->IF_queue, newInstruction);
-                            
-
-                        }  else {
-
-                            Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
-                            Insert_Queue(pipeline->stall_queue, newInstruction);
-                        }
-                    }
-                }
-                else 
-                {   
-                    Insert_Queue(pipeline->stall_queue, newInstruction);
-                }
                 
-                // reset the token array
-                token_array[0] = 0x0;
-                token_array[1] = 0x0;
-                token_array[2] = 0x0;
-                token_array[3] = 0x0;
-                token_instruction_type = 0;
-              
-                if ((pipeline->IF_queue->count == width) && (pipeline->ID_queue->count == width) &&
-                (pipeline->EX_queue->count == width) && (pipeline->MEM_queue->count == width) &&
-                (pipeline->WB_queue->count == width)) 
-                {
-                    
-                    Simulate_Cycle(pipeline, width);
-
-                }
-            }
-            
-            j++;
-            
-            if (j >= starting_instruction + simulating_instruction){
-                break;
-            }
-        }
-        infile.close(); 
-        
-      while (pipeline->finish_count < simulating_instruction) {
-
-            // if there is a branch that hasnt excuted yet in the pipeline
-            if (isBranchin_IF_ID_EX(pipeline)) {
-
-                int x = pipeline->IF_queue->count;
-                for (int i = x; i < width; i ++) {
-
-                    Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
-                }
-            }
-            
-            while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
-            {   
-                if (pipeline->IF_queue->head == NULL) {
-
-                    struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
-                    pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
-                    pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
-                    pipeline->stall_queue->head->instruction_dependency[2]);
-                    Insert_Queue(pipeline->IF_queue, newInstruction);
-                    Delete_Instruction(pipeline->stall_queue);
-
-                } else {
-
-                    if ((pipeline->IF_queue->tail->instructionType != 3) && 
-                        (pipeline->IF_queue->tail->instructionType != 6)) {
+                while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
+                {   
+                    // if IF is 0
+                    if (pipeline->IF_queue->head == NULL) {
 
                         struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
                         pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
                         pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
                         pipeline->stall_queue->head->instruction_dependency[2]);
+
+                        // if the instruction address is being processed again, erase the address from the finish queu
+                        if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                        
+                            Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                        }
+
                         Insert_Queue(pipeline->IF_queue, newInstruction);
                         Delete_Instruction(pipeline->stall_queue);
 
                     } else {
 
-                        Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                        if ((pipeline->IF_queue->tail->instructionType != 3) && 
+                            (pipeline->IF_queue->tail->instructionType != 6)) {
+
+                            struct Instruction *newInstruction = NewInstruction(pipeline->stall_queue->head->instruction_address,
+                            pipeline->cycle_count, pipeline->stall_queue->head->instructionType,
+                            pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
+                            pipeline->stall_queue->head->instruction_dependency[2]);
+                            // if the instruction address is being processed again, erase the address from the finish queu
+                            if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                        
+                                Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                            }
+                            Insert_Queue(pipeline->IF_queue, newInstruction);
+                            Delete_Instruction(pipeline->stall_queue);
+
+                        } else {
+
+                            Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
+                        }
                     }
                 }
+                Simulate_Cycle(pipeline, width);
             }
-            Simulate_Cycle(pipeline, width);
+            PrintStatistics(pipeline, width, starting_instruction, simulating_instruction, filename);
+            FreePipeline(pipeline);
+
+
+
         }
-        PrintStatistics(pipeline, width, starting_instruction, simulating_instruction, filename);
-        FreePipeline(pipeline);
-        
     } 
     else 
     {

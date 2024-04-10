@@ -119,6 +119,7 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->finsh_address_queue = new struct AddressQueue;
     pipeline->finsh_address_queue->head = NULL;
     pipeline->finsh_address_queue->tail = NULL;
+    Insert_Address(pipeline->finsh_address_queue, 0x0); // dummy address where dummies can work
 
     pipeline->IF_queue = new struct InstructionQueue;
     pipeline->IF_queue->head = NULL;
@@ -187,27 +188,6 @@ struct Instruction *NewInstruction(unsigned long address, int cycle_count, int t
 
  }
 
-unsigned long Delete_WB_Instruction(struct InstructionQueue *InstructionQueue) {
-
-    struct Instruction *toDelete = InstructionQueue->head;
-    InstructionQueue->head = InstructionQueue->head->next;
-
-    if (InstructionQueue->head != NULL) {
-
-        InstructionQueue->head->prev = NULL;
-    } else {
-
-        InstructionQueue->tail = NULL;
-    }
-
-    unsigned long address = toDelete->instruction_address;
-
-    delete toDelete;
-    InstructionQueue->count--;
-
-    return address;
-}
-
 void Delete_Instruction(struct InstructionQueue *InstructionQueue){
 
     struct Instruction *toDelete = InstructionQueue->head;
@@ -251,15 +231,8 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
 
                 Pipeline->store_count++;
             }
-            // if this is a new address that has not been excuted before
-            if (Pipeline->WB_queue->head->instruction_address > Pipeline->latest_instruction_address_finished) {
-
-                Pipeline->latest_instruction_address_finished = Delete_WB_Instruction(Pipeline->WB_queue);
-
-            } else {
-
-                Delete_Instruction(Pipeline->WB_queue);
-            }
+            Insert_Address(Pipeline->finsh_address_queue, Pipeline->WB_queue->head->instruction_address);
+            Delete_Instruction(Pipeline->WB_queue);
             Pipeline->finish_count++;
             
         } else {
@@ -387,10 +360,10 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
  
     while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
     {   
-        if ((max(max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]),
-         Pipeline->IF_queue->head->instruction_dependency[2]) == 0)
-         || (max(max(Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1]), 
-         Pipeline->IF_queue->head->instruction_dependency[2]) <= (Pipeline->latest_instruction_address_finished))) //no dependencies or denpendencies are finished
+        //no dependencies or dependencies are finished (Note: at initalization 0x0 is put into the finish address queue)
+        if (isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[0])
+        && isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[1])
+        && isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[2]))
         {   
             struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
             Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
@@ -399,10 +372,11 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
 
             Insert_Queue(Pipeline->ID_queue,newInstruction);
             Delete_Instruction(Pipeline->IF_queue);
-        } else {
+
+        } else { 
+
             break;
         }
-
     }
 }
 
@@ -557,10 +531,11 @@ bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long 
     struct Address *current = finish_address_queue->head;
     // (inOrder queue so if current goes past the address it is not in here)
     while ((current != NULL) && (current->address <= address)) {
-
+        cout << "test" << endl;
         if (current->address == address) {
             return true;
         }
+        current = current->next;
     }
 
     return false;
