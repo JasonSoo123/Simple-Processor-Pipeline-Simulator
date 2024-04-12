@@ -40,7 +40,6 @@ struct AddressNode {
 
 struct AddressTree {
 
-    string name;
     int count;
     struct AddressNode *root;
 };
@@ -56,7 +55,6 @@ struct Pipeline
     struct InstructionQueue *WB_queue;
 
     struct AddressTree *finish_address_tree;
-    struct AddressTree *stall_tree;
 
     unsigned long latest_instruction_address_finished;
 

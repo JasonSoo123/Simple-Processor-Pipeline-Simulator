@@ -300,13 +300,8 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->finish_address_tree = new struct AddressTree;
     pipeline->finish_address_tree->root = NULL;
     pipeline->finish_address_tree->count = 0;
-    pipeline->finish_address_tree->name = "F_AVL";
     Insert_Address(pipeline->finish_address_tree, 0x0); // dummy address where dummies can work
 
-    pipeline->stall_tree = new struct AddressTree;
-    pipeline->stall_tree->root = NULL;
-    pipeline->stall_tree->name = "S_AVL";
-    pipeline->stall_tree->count = 0;
 
     pipeline->IF_queue = new struct InstructionQueue;
     pipeline->IF_queue->head = NULL;
@@ -550,7 +545,7 @@ void ProcessID(struct Pipeline *Pipeline, int width)
                 Delete_Instruction(Pipeline->ID_queue);
 
             } else { // stall
-
+            
                 break; 
             }
 
@@ -569,6 +564,27 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
  
     while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
     {    
+        // if you cannot find the the dependency in the pipeline or in the finished address tree
+        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[0])
+         && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[0])) {
+
+            Pipeline->IF_queue->head->instruction_dependency[0] = 0x0; // reset the dependency
+        }
+
+        // if you cannot find the the dependency in the pipeline or in the finished address tree
+        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[1])
+         && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[1])) {
+
+            Pipeline->IF_queue->head->instruction_dependency[1] = 0x0; // reset the dependency
+        }
+
+        // if you cannot find the the dependency in the pipeline or in the finished address tree
+        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[2])
+         && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[2])) {
+
+            Pipeline->IF_queue->head->instruction_dependency[2] = 0x0; // reset the dependency
+        }
+
         struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
         Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
         Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1],
@@ -823,7 +839,6 @@ void FreePipeline(struct Pipeline *Pipeline) {
     }
 
     Free_Address_Tree(Pipeline->finish_address_tree);
-    Free_Address_Tree(Pipeline->stall_tree);
 }
 
 // print stats
