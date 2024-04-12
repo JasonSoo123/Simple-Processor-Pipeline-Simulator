@@ -31,17 +31,18 @@ struct InstructionQueue
 
 };
 
-struct Address
-{
+struct AddressNode {
     unsigned long address;
-    struct Address *next;
-    struct Address *prev;
+    int height;
+    struct AddressNode *left;
+    struct AddressNode *right;
 };
 
-struct AddressQueue
-{
-    struct Address *head;
-    struct Address *tail;
+struct AddressTree {
+
+    string name;
+    int count;
+    struct AddressNode *root;
 };
 
 struct Pipeline
@@ -54,7 +55,8 @@ struct Pipeline
     struct InstructionQueue *MEM_queue;
     struct InstructionQueue *WB_queue;
 
-    struct AddressQueue *finsh_address_queue;
+    struct AddressTree *finish_address_tree;
+    struct AddressTree *stall_tree;
 
     unsigned long latest_instruction_address_finished;
 
@@ -74,19 +76,13 @@ struct Pipeline *InitalizePipeline(int width);
 struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type,
 unsigned long dependency1, unsigned long dependency2, unsigned long dependency3);
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction);
-void Insert_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
-void Delete_Address(struct AddressQueue *address_queue, unsigned long instruction_address);
+void Insert_Address(struct AddressTree *address_tree, unsigned long instruction_address);
+void Delete_Address(struct AddressTree *address_tree, unsigned long instruction_address);
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);
-void ProcessWB(struct Pipeline *Pipeline, int width);
-void ProcessMEM(struct Pipeline *Pipeline, int width);
-void ProcessEX(struct Pipeline *Pipeline, int width);
-void ProcessID(struct Pipeline *Pipeline, int width);
-void ProcessIF(struct Pipeline *Pipeline, int width);
-void Simulate_Cycle(struct Pipeline *Pipeline, int width);
+void Simulate_Cycle(struct Pipeline *Pipeline, int width, int simulating_instruction);
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
 bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address);
-bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long address);
-bool isAddressStalled(struct InstructionQueue *stall_queue, unsigned long address);
+bool isAddressTree(struct AddressTree *tree, unsigned long address);
 void FreePipeline(struct Pipeline *Pipeline);
 void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction, string filename);
 

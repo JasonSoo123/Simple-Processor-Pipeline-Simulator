@@ -76,22 +76,22 @@ int main(int argc, char* argv[])
                     if ((token_array[1] != 0x0) || (token_array[2] != 0x0) || (token_array[3] != 0x0)){
             
                         // if you cannot find in the pipeline and stall. or the dependency is finished already
-                        if ((!isAddressinPipeline(pipeline, token_array[1]) && !isAddressStalled(pipeline->stall_queue, token_array[1]))
-                        || isAddressFinished(pipeline->finsh_address_queue, token_array[1])) {
+                        if ((!isAddressinPipeline(pipeline, token_array[1]) && !isAddressTree(pipeline->stall_tree, token_array[1]))
+                        || isAddressTree(pipeline->finish_address_tree, token_array[1])) {
                             
                             token_array[1] = 0x0; // reset to no dependency
                         }
 
                         // if you cannot find in the pipeline and stall. or the dependency is finished already
-                        if ((!isAddressinPipeline(pipeline, token_array[2]) && !isAddressStalled(pipeline->stall_queue, token_array[2]))
-                        || isAddressFinished(pipeline->finsh_address_queue, token_array[2])) {
+                        if ((!isAddressinPipeline(pipeline, token_array[2]) && !isAddressTree(pipeline->stall_tree, token_array[2]))
+                        || isAddressTree(pipeline->finish_address_tree, token_array[2])) {
                             
                             token_array[2] = 0x0; // reset to no dependency
                         }
 
                         // if you cannot find in the pipeline and stall. or the dependency is finished already
-                        if ((!isAddressinPipeline(pipeline, token_array[3]) && !isAddressStalled(pipeline->stall_queue, token_array[3]))
-                        || isAddressFinished(pipeline->finsh_address_queue, token_array[3])) {
+                        if ((!isAddressinPipeline(pipeline, token_array[3]) && !isAddressTree(pipeline->stall_tree, token_array[3]))
+                        || isAddressTree(pipeline->finish_address_tree, token_array[3])) {
                             
                             token_array[3] = 0x0; // reset to no dependency
                         }
@@ -118,12 +118,13 @@ int main(int argc, char* argv[])
                                 pipeline->stall_queue->head->instruction_dependency[2]);
 
                                 // if the instruction address is being processed again, erase the address from the finish queu
-                                if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
-                                    cout << pipeline->finish_count << endl;
-                                    Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
+                                   
+                                    Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                                 }
 
                                 Insert_Queue(pipeline->IF_queue, newInstruction);
+                                Delete_Address(pipeline->stall_tree, pipeline->stall_queue->head->instruction_address);
                                 Delete_Instruction(pipeline->stall_queue);
 
                             } else {
@@ -137,11 +138,13 @@ int main(int argc, char* argv[])
                                     pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
                                     pipeline->stall_queue->head->instruction_dependency[2]);
                                     // if the instruction address is being processed again, erase the address from the finish queu
-                                    if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                                    if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
                                 
-                                        Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                        Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                                     }
+                
                                     Insert_Queue(pipeline->IF_queue, newInstruction);
+                                    Delete_Address(pipeline->stall_tree, pipeline->stall_queue->head->instruction_address);
                                     Delete_Instruction(pipeline->stall_queue);
 
                                 } else {
@@ -164,9 +167,9 @@ int main(int argc, char* argv[])
                         if (pipeline->IF_queue->head == NULL) {
                             
                             // if the instruction address is being processed again, erase the address from the finish queu
-                            if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                            if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
                         
-                                Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                             }
                             Insert_Queue(pipeline->IF_queue, newInstruction);
             
@@ -177,9 +180,9 @@ int main(int argc, char* argv[])
                             (pipeline->IF_queue->tail->instructionType != 6)) {
                                 
                                 // if the instruction address is being processed again, erase the address from the finish queu
-                                if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                                if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
                         
-                                    Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                    Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                                 }
                                 Insert_Queue(pipeline->IF_queue, newInstruction);
                                 
@@ -188,12 +191,14 @@ int main(int argc, char* argv[])
 
                                 Insert_Queue(pipeline->IF_queue, NewInstruction(0x0, -1, 6, 0x0, 0x0, 0x0)); // place a dummy node
                                 Insert_Queue(pipeline->stall_queue, newInstruction);
+                                Insert_Address(pipeline->stall_tree, newInstruction->instruction_address);
                             }
                         }
                     }
                     else 
                     {   
                         Insert_Queue(pipeline->stall_queue, newInstruction);
+                        Insert_Address(pipeline->stall_tree, newInstruction->instruction_address);
                     }
                     
                     // reset the token array
@@ -208,7 +213,7 @@ int main(int argc, char* argv[])
                     (pipeline->WB_queue->count == width)) 
                     {
                         
-                        Simulate_Cycle(pipeline, width);
+                        Simulate_Cycle(pipeline, width, simulating_instruction);
 
                     }
                 }
@@ -222,7 +227,7 @@ int main(int argc, char* argv[])
             infile.close(); 
 
             while (pipeline->finish_count < simulating_instruction) {
-
+                
                 // if there is a branch that hasnt excuted yet in the pipeline
                 if (isBranchin_IF_ID_EX(pipeline)) {
 
@@ -235,6 +240,7 @@ int main(int argc, char* argv[])
                 
                 while((pipeline->stall_queue->count > 0) && (pipeline->IF_queue->count != width))
                 {   
+                    
                     // if IF is 0
                     if (pipeline->IF_queue->head == NULL) {
 
@@ -244,12 +250,13 @@ int main(int argc, char* argv[])
                         pipeline->stall_queue->head->instruction_dependency[2]);
 
                         // if the instruction address is being processed again, erase the address from the finish queu
-                        if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
-                        
-                            Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                        if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
+                           
+                            Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                         }
 
                         Insert_Queue(pipeline->IF_queue, newInstruction);
+                        Delete_Address(pipeline->stall_tree, pipeline->stall_queue->head->instruction_address);
                         Delete_Instruction(pipeline->stall_queue);
 
                     } else {
@@ -262,11 +269,12 @@ int main(int argc, char* argv[])
                             pipeline->stall_queue->head->instruction_dependency[0], pipeline->stall_queue->head->instruction_dependency[1],
                             pipeline->stall_queue->head->instruction_dependency[2]);
                             // if the instruction address is being processed again, erase the address from the finish queu
-                            if (isAddressFinished(pipeline->finsh_address_queue, newInstruction->instruction_address)) {
+                            if (isAddressTree(pipeline->finish_address_tree, newInstruction->instruction_address)) {
                         
-                                Delete_Address(pipeline->finsh_address_queue, newInstruction->instruction_address);
+                                Delete_Address(pipeline->finish_address_tree, newInstruction->instruction_address);
                             }
                             Insert_Queue(pipeline->IF_queue, newInstruction);
+                            Delete_Address(pipeline->stall_tree, pipeline->stall_queue->head->instruction_address);
                             Delete_Instruction(pipeline->stall_queue);
 
                         } else {
@@ -275,7 +283,7 @@ int main(int argc, char* argv[])
                         }
                     }
                 }
-                Simulate_Cycle(pipeline, width);
+                Simulate_Cycle(pipeline, width, simulating_instruction);
             }
             PrintStatistics(pipeline, width, starting_instruction, simulating_instruction, filename);
             FreePipeline(pipeline);

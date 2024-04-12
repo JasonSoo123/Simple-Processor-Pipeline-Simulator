@@ -10,6 +10,10 @@ int branch_ex = 0; // branch execution if being used is 1 else is 0
 int storing_port = 0; // write port 0 if not being used 1 if being used.
 int loading_port = 0; // read port 0 if not being used 1 if being used.
 
+// NOTE: all AddressNode functions for the tree is referenced from Geeks for Geeks.
+// https://www.geeksforgeeks.org/insertion-in-an-avl-tree/
+
+// inserting instruction to a queue
 void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction *Instruction) {
 
     if (InstructionQueue->head == NULL) {
@@ -27,86 +31,263 @@ void Insert_Queue(struct InstructionQueue *InstructionQueue, struct Instruction 
     InstructionQueue->count++;
 }
 
-void Insert_Address(struct AddressQueue *address_queue, unsigned long instruction_address) {
+// Helper function to get the height of a node
+int height(struct AddressNode *node) {
 
-    struct Address *newAddress = new struct Address;
-    newAddress->address = instruction_address;
-    newAddress->next = NULL;
+    if (node == NULL) {
 
-    if (address_queue->head == NULL) {
+        return 0;
+    }
 
-        address_queue->head = newAddress;
-        address_queue->tail = newAddress;
+    return node->height;
+}
+
+// make a new Address node
+struct AddressNode *newAddressNode(unsigned long address) {
+
+    struct AddressNode* node = new struct AddressNode;
+    node->address = address;
+    node->left = NULL;
+    node->right = NULL;
+    node->height = 1;
+    return node;
+}
+
+// Helper function to right rotate subtree rooted with y
+struct AddressNode *rightRotate(struct AddressNode *y) {
+
+    struct AddressNode *x = y->left;
+    struct AddressNode *T2 = x->right;
+
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    // Return new root
+    return x;
+}
+
+// Helper function to left rotate subtree rooted with x
+struct AddressNode *leftRotate(struct AddressNode *x) {
+    struct AddressNode *y = x->right;
+    struct AddressNode *T2 = y->left;
+
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    // Return new root
+    return y;
+}
+
+// Get Balance factor of node
+int getBalance(struct AddressNode *node) {
+
+    if (node == NULL) {
+        return 0;
+    }
+
+    return height(node->left) - height(node->right);
+}
+
+// Recursive function to insert a node with given address in AVL tree
+struct AddressNode* insertAddress(struct AddressNode *node, unsigned long address) {
+
+    // Perform normal BST insertion
+    if (node == NULL) {
+
+        return newAddressNode(address);
+    }
+
+    if (address < node->address) {
+
+        node->left = insertAddress(node->left, address);
+
+    } else if (address > node->address) {
+
+        node->right = insertAddress(node->right, address);
+
+    } else { // Duplicate addresses are not allowed
+
+        return node;
+    }
+
+    // Update height of this ancestor node
+    node->height = 1 + max(height(node->left), height(node->right));
+
+    // check if it became unbalanced
+    int balance = getBalance(node);
+
+    // If this node becomes unbalanced, four cases
+
+    // Left Left Case
+    if (balance > 1 && address < node->left->address) {
+
+        return rightRotate(node);
+    }
+
+    // Right Right Case
+    if (balance < -1 && address > node->right->address) {
+
+        return leftRotate(node);
+    }
+
+    // Left Right Case
+    if ((balance > 1) && (address > node->left->address)) {
+
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+
+    // Right Left Case
+    if ((balance < -1) && (address < node->right->address)) {
+
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+// Insert address into AVL tree
+void Insert_Address(struct AddressTree *address_tree, unsigned long instruction_address){
+
+    address_tree->root = insertAddress(address_tree->root, instruction_address);
+    address_tree->count++;
+}
+
+// return the node with the min address value found in that sub tree
+struct AddressNode *minValueNode(struct AddressNode *node) {
+
+    struct AddressNode *current = node;
+
+    while (current->left != NULL) {
+
+        current = current->left;
+    }
+
+    return current;
+}
+
+// Recursive function to delete a node with given address from AVL tree and adjust the address queue
+struct AddressNode* deleteAddress(struct AddressNode *root, unsigned long address) {
+   
+    if (root == NULL) {
+
+        return root;
+    }
+
+    // Search for the node to be deleted
+    if (address < root->address) {
+
+        root->left = deleteAddress(root->left, address);
+
+    } else if (address > root->address) {
+
+        root->right = deleteAddress(root->right, address);
 
     } else {
-        // Find the correct position to insert the new address
-        struct Address *current = address_queue->head;
-        struct Address *prev = NULL;
+        // Node with the address to be deleted found
 
-        while (current != NULL && current->address < instruction_address) {
-            prev = current;
-            current = current->next;
-        }
+        // Node with only one child or no child
+        if ((root->left == NULL) || (root->right == NULL)) {
+            struct AddressNode *temp;
+            if (root->left != NULL) {
 
-        if (prev == NULL) {
+                temp = root->left;
 
-            newAddress->next = address_queue->head;
-            address_queue->head = newAddress;
+            } else {
 
-        } else {
+                temp = root->right;
+            }
 
-            prev->next = newAddress;
-            newAddress->next = current;
-        }
-        if (current == NULL) {
-            address_queue->tail = newAddress;
+            // No child case
+            if (temp == NULL) {
+
+                temp = root;
+                root = NULL;
+
+            } else { // One child case
+
+                *root = *temp; // Copy the contents of the non-empty child
+            }
+            delete temp;
+
+        } else {  // Node with two children: Get the inorder successor (smallest in the right subtree)
+
+            struct AddressNode* temp = minValueNode(root->right);
+
+            // Copy the inorder successor's data to this node
+            root->address = temp->address;
+
+            // Delete the inorder successor
+            root->right = deleteAddress(root->right, temp->address);
         }
     }
+
+    // If the tree had only one node then return
+    if (root == NULL) {
+
+        return root;
+    }
+
+    // Update the height of the current node
+    root->height = 1 + max(height(root->left), height(root->right));
+
+    // Check if the node is unbalanced
+    int balance = getBalance(root);
+
+    // Left Left Case
+    if ((balance > 1) && (getBalance(root->left) >= 0)) {
+
+        return rightRotate(root);
+    }
+
+    // Left Right Case
+    if ((balance > 1) && (getBalance(root->left) < 0)) {
+
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    // Right Right Case
+    if ((balance < -1) && (getBalance(root->right) <= 0)) {
+
+        return leftRotate(root);
+    }
+
+    // Right Left Case
+    if ((balance < -1) && (getBalance(root->right) > 0)) {
+
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+
+    return root;
 }
 
-void Delete_Address(struct AddressQueue *address_queue, unsigned long instruction_address) {
-
-    if (address_queue->head == NULL) {
-
-        return;
-    }
-
-    if (address_queue->head->address == instruction_address) {
-
-        struct Address *temp = address_queue->head;
-        address_queue->head = address_queue->head->next;
-        delete temp;
-
-        if (address_queue->head == NULL) {
-
-            address_queue->tail = NULL;
-        }
+// Delete address in AVL tree
+void Delete_Address(struct AddressTree *address_tree, unsigned long instruction_address){
+    // Check if the tree is empty
+    if (address_tree == NULL || address_tree->root == NULL) {
 
         return;
     }
 
-    struct Address *current = address_queue->head;
-    struct Address *prev = NULL;
-    while (current != NULL && current->address != instruction_address) {
-
-        prev = current;
-        current = current->next;
-    }
-
-    if (current == NULL) {
-
-        return;
-    }
-
-    prev->next = current->next;
-    delete current;
-
-    if (prev->next == NULL) {
-
-        address_queue->tail = prev;
-    }
+    // Delete the address from the AVL tree
+    address_tree->root = deleteAddress(address_tree->root, instruction_address);
+    address_tree->count--;
 }
 
+// initalize the Pipeline
 struct Pipeline *InitalizePipeline(int width){
 
     struct Pipeline *pipeline = new struct Pipeline;
@@ -116,10 +297,16 @@ struct Pipeline *InitalizePipeline(int width){
     pipeline->stall_queue->tail = NULL;
     pipeline->stall_queue->count = 0;
 
-    pipeline->finsh_address_queue = new struct AddressQueue;
-    pipeline->finsh_address_queue->head = NULL;
-    pipeline->finsh_address_queue->tail = NULL;
-    Insert_Address(pipeline->finsh_address_queue, 0x0); // dummy address where dummies can work
+    pipeline->finish_address_tree = new struct AddressTree;
+    pipeline->finish_address_tree->root = NULL;
+    pipeline->finish_address_tree->count = 0;
+    pipeline->finish_address_tree->name = "F_AVL";
+    Insert_Address(pipeline->finish_address_tree, 0x0); // dummy address where dummies can work
+
+    pipeline->stall_tree = new struct AddressTree;
+    pipeline->stall_tree->root = NULL;
+    pipeline->stall_tree->name = "S_AVL";
+    pipeline->stall_tree->count = 0;
 
     pipeline->IF_queue = new struct InstructionQueue;
     pipeline->IF_queue->head = NULL;
@@ -171,6 +358,7 @@ struct Pipeline *InitalizePipeline(int width){
     return pipeline;
 }
 
+// make a new Instruction node
 struct Instruction *NewInstruction(unsigned long address, int cycle_count, int type,
  unsigned long dependency1, unsigned long dependency2, unsigned long dependency3) {
 
@@ -188,6 +376,7 @@ struct Instruction *NewInstruction(unsigned long address, int cycle_count, int t
 
  }
 
+// delete the head instruction of a queue
 void Delete_Instruction(struct InstructionQueue *InstructionQueue){
 
     struct Instruction *toDelete = InstructionQueue->head;
@@ -205,6 +394,7 @@ void Delete_Instruction(struct InstructionQueue *InstructionQueue){
     InstructionQueue->count--;
 }
 
+// proccess the write back stage
 void ProcessWB(struct Pipeline *Pipeline, int width){
 
     while (Pipeline->WB_queue->count != 0) {
@@ -242,17 +432,18 @@ void ProcessWB(struct Pipeline *Pipeline, int width){
     }
 }
 
+// proccess the memory stage
 void ProcessMEM(struct Pipeline *Pipeline, int width)
 {
 
     while ((Pipeline->MEM_queue->count != 0 ) && (Pipeline->WB_queue->count != width)) 
     {
         if (Pipeline->MEM_queue->head->instructionType == 4) {
-            Insert_Address(Pipeline->finsh_address_queue, Pipeline->MEM_queue->head->instruction_address);
+            Insert_Address(Pipeline->finish_address_tree, Pipeline->MEM_queue->head->instruction_address);
             storing_port = 0;
 
         } else if (Pipeline->MEM_queue->head->instructionType == 5) {
-            Insert_Address(Pipeline->finsh_address_queue, Pipeline->MEM_queue->head->instruction_address);
+            Insert_Address(Pipeline->finish_address_tree, Pipeline->MEM_queue->head->instruction_address);
             loading_port = 0;
         }
         
@@ -265,6 +456,7 @@ void ProcessMEM(struct Pipeline *Pipeline, int width)
     }
 }
 
+// process the execute stage
 void ProcessEX(struct Pipeline *Pipeline, int width)
 {   
 
@@ -280,17 +472,17 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 
             if (Pipeline->EX_queue->head->instructionType == 1) {
 
-                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
+                Insert_Address(Pipeline->finish_address_tree, Pipeline->EX_queue->head->instruction_address);
                 int_ALU = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 2) {
 
-                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
+                Insert_Address(Pipeline->finish_address_tree, Pipeline->EX_queue->head->instruction_address);
                 ftp_ALU = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 3) {
 
-                Insert_Address(Pipeline->finsh_address_queue, Pipeline->EX_queue->head->instruction_address);
+                Insert_Address(Pipeline->finish_address_tree, Pipeline->EX_queue->head->instruction_address);
                 branch_ex = 0;
 
             } else if (Pipeline->EX_queue->head->instructionType == 4) {
@@ -317,37 +509,51 @@ void ProcessEX(struct Pipeline *Pipeline, int width)
 
 }
 
+// process the instruction decode stage
 void ProcessID(struct Pipeline *Pipeline, int width)
 {   
      while ((Pipeline->ID_queue->count != 0) && Pipeline->EX_queue->count != width)
     {   
         // Assuming because it is an In-Order Pipeline...
+        // check if it passes structual hazards
         if (((Pipeline->ID_queue->head->instructionType == 1) && (int_ALU == 0)) ||
          ((Pipeline->ID_queue->head->instructionType == 2) && (ftp_ALU == 0)) || 
-         ((Pipeline->ID_queue->head->instructionType == 3) && (branch_ex == 0))
-         || (Pipeline->ID_queue->head->instructionType == 4) || (Pipeline->ID_queue->head->instructionType == 5) ||
+         ((Pipeline->ID_queue->head->instructionType == 3) && (branch_ex == 0)) ||
+         (Pipeline->ID_queue->head->instructionType == 4) || 
+         (Pipeline->ID_queue->head->instructionType == 5) ||
          (Pipeline->ID_queue->head->instructionType == 6)) {
 
-            // make it busy.
-            if (Pipeline->ID_queue->head->instructionType == 1) {
+            // check if it passes all dependency tests.
+            if (isAddressTree(Pipeline->finish_address_tree, Pipeline->ID_queue->head->instruction_dependency[0])
+            && isAddressTree(Pipeline->finish_address_tree, Pipeline->ID_queue->head->instruction_dependency[1])
+            && isAddressTree(Pipeline->finish_address_tree, Pipeline->ID_queue->head->instruction_dependency[2])) {
 
-                int_ALU = 1;
+                // make it busy.
+                if (Pipeline->ID_queue->head->instructionType == 1) {
 
-            } else if (Pipeline->ID_queue->head->instructionType == 2) {
+                    int_ALU = 1;
 
-                ftp_ALU = 1;
+                } else if (Pipeline->ID_queue->head->instructionType == 2) {
 
-            } else if (Pipeline->ID_queue->head->instructionType == 3) {
+                    ftp_ALU = 1;
 
-                branch_ex = 1;
+                } else if (Pipeline->ID_queue->head->instructionType == 3) {
+
+                    branch_ex = 1;
+                }
+
+                Insert_Queue(Pipeline->EX_queue, NewInstruction(Pipeline->ID_queue->head->instruction_address, 
+                Pipeline->ID_queue->head->cycle_inserted, Pipeline->ID_queue->head->instructionType,
+                Pipeline->ID_queue->head->instruction_dependency[0], Pipeline->ID_queue->head->instruction_dependency[1],
+                Pipeline->ID_queue->head->instruction_dependency[2]));
+        
+                Delete_Instruction(Pipeline->ID_queue);
+
+            } else { // stall
+
+                break; 
             }
 
-            Insert_Queue(Pipeline->EX_queue, NewInstruction(Pipeline->ID_queue->head->instruction_address, 
-            Pipeline->ID_queue->head->cycle_inserted, Pipeline->ID_queue->head->instructionType,
-            Pipeline->ID_queue->head->instruction_dependency[0], Pipeline->ID_queue->head->instruction_dependency[1],
-            Pipeline->ID_queue->head->instruction_dependency[2]));
-    
-            Delete_Instruction(Pipeline->ID_queue);
 
         } else { // stall
 
@@ -357,89 +563,82 @@ void ProcessID(struct Pipeline *Pipeline, int width)
 
 }
 
-
+// process the instruction fetch stage
 void ProcessIF(struct Pipeline *Pipeline, int width)
 {
  
     while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
-    {   
-        //no dependencies or dependencies are finished (Note: at initalization 0x0 is put into the finish address queue)
-        if (isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[0])
-        && isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[1])
-        && isAddressFinished(Pipeline->finsh_address_queue, Pipeline->IF_queue->head->instruction_dependency[2]))
-        {   
-            struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
-            Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
-            Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1],
-            Pipeline->IF_queue->head->instruction_dependency[2]);
+    {    
+        struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
+        Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
+        Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1],
+        Pipeline->IF_queue->head->instruction_dependency[2]);
 
-            Insert_Queue(Pipeline->ID_queue,newInstruction);
-            Delete_Instruction(Pipeline->IF_queue);
-
-        } else { 
-
-            break;
-        }
+        Insert_Queue(Pipeline->ID_queue,newInstruction);
+        Delete_Instruction(Pipeline->IF_queue);
     }
 }
 
-
-
-void Simulate_Cycle(struct Pipeline *Pipeline, int width){
-    cout << "Cycle: " << Pipeline->cycle_count << endl; 
-    struct Instruction *temp = Pipeline->WB_queue->head;
-    cout << "WB: " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
+// simulate a cycle
+void Simulate_Cycle(struct Pipeline *Pipeline, int width, int simulating_instruction){
+    // cout << "Cycle: " << Pipeline->cycle_count << endl; 
+    // struct Instruction *temp = Pipeline->WB_queue->head;
+    // cout << "WB: " << endl;
+    // while (temp != NULL) {
+    //     cout << temp->instruction_address << endl;
+    //     cout << temp->instructionType << endl;
+    //     cout << endl;
+    //     temp = temp->next;
+    // }
     ProcessWB(Pipeline, width);
 
-    temp = Pipeline->MEM_queue->head;
-    cout << "MEM: " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
+    // temp = Pipeline->MEM_queue->head;
+    // cout << "MEM: " << endl;
+    // while (temp != NULL) {
+    //     cout << temp->instruction_address << endl;
+    //     cout << temp->instructionType << endl;
+    //     cout << endl;
+    //     temp = temp->next;
+    // }
     ProcessMEM(Pipeline, width);
 
-    temp = Pipeline->EX_queue->head;
-    cout << "EX: " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
+    // temp = Pipeline->EX_queue->head;
+    // cout << "EX: " << endl;
+    // while (temp != NULL) {
+    //     cout << temp->instruction_address << endl;
+    //     cout << temp->instructionType << endl;
+    //     cout << endl;
+    //     temp = temp->next;
+    // }
     ProcessEX(Pipeline, width);
 
-    temp = Pipeline->ID_queue->head;
-    cout << "ID: " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
+    // temp = Pipeline->ID_queue->head;
+    // cout << "ID: " << endl;
+    // while (temp != NULL) {
+    //     cout << temp->instruction_address << endl;
+    //     cout << temp->instructionType << endl;
+    //     cout << endl;
+    //     temp = temp->next;
+    // }
     ProcessID(Pipeline, width);
 
-    temp = Pipeline->IF_queue->head;
-    cout << "IF: " << endl;
-    while (temp != NULL) {
-        cout << temp->instruction_address << endl;
-        cout << temp->instructionType << endl;
-        cout << endl;
-        temp = temp->next;
-    }
+    // temp = Pipeline->IF_queue->head;
+    // cout << "IF: " << endl;
+    // while (temp != NULL) {
+    //     cout << temp->instruction_address << endl;
+    //     cout << temp->instructionType << endl;
+    //     cout << endl;
+    //     temp = temp->next;
+    // }
     ProcessIF(Pipeline, width);
 
-    Pipeline->cycle_count++;
-    
+    if (Pipeline->finish_count != simulating_instruction) {
+
+        Pipeline->cycle_count++;
+    }
 }
+
+// check if there is a branch instruction in the first 3 stages
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
 {
     struct Instruction *current = Pipeline->IF_queue->head;
@@ -475,6 +674,7 @@ bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
     return false;
 }
 
+// check if that address is in the pipeline
 bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address) {
 
     struct Instruction *current = Pipeline->IF_queue->head;
@@ -529,33 +729,56 @@ bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address) {
 
     return false;
 }
-bool isAddressFinished(struct AddressQueue *finish_address_queue, unsigned long address) {
 
-    struct Address *current = finish_address_queue->head;
-    // (inOrder queue so if current goes past the address it is not in here)
-    while ((current != NULL) && (current->address <= address)) {
+// Recursive function that finds the address in AVL tree
+bool is_Address_Tree(struct AddressNode *root, unsigned long address) {
+
+    if (root == NULL) {
         
-        if (current->address == address) {
-            
-            return true;
-        }
-        current = current->next;
+        return false;   
     }
-    return false;
-}
-bool isAddressStalled(struct InstructionQueue *stall_queue, unsigned long address){
-    struct Instruction *current = stall_queue->tail;
-
-    while (current != NULL) {
-
-        if (current->instruction_address == address) {
-
-            return true;
-        }
-        current = current->prev;
+    if (root->address == address) {
+       
+        return true;
     }
-    return false;
+    if (address < root->address) {
+
+        return is_Address_Tree(root->left, address);
+    }
+    else {
+
+        return is_Address_Tree(root->right, address);
+    }
 }
+
+// find if the address is finished executing
+bool isAddressTree(struct AddressTree *tree, unsigned long address){
+    
+    return is_Address_Tree(tree->root, address);
+}
+
+// Recursive function that frees the tree
+void freeAddressTree(struct AddressNode *root) {
+
+    if (root == NULL){
+
+        return;
+    }
+
+    freeAddressTree(root->left);
+    freeAddressTree(root->right);
+    free(root);
+
+}
+
+// free the tree
+void Free_Address_Tree(struct AddressTree *address_tree) {
+
+    freeAddressTree(address_tree->root);
+    address_tree->root = NULL; 
+}
+
+// free everything in pipeline
 void FreePipeline(struct Pipeline *Pipeline) {
 
     struct Instruction *temp = Pipeline->IF_queue->head;
@@ -599,14 +822,11 @@ void FreePipeline(struct Pipeline *Pipeline) {
         delete toDelete;
     }
 
-    struct Address *tempA = Pipeline->finsh_address_queue->head;
-    while (tempA != NULL) {
-        struct Address *toDelete = tempA;
-        tempA = tempA->next;
-        delete toDelete;
-    }
+    Free_Address_Tree(Pipeline->finish_address_tree);
+    Free_Address_Tree(Pipeline->stall_tree);
 }
 
+// print stats
 void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction, string filename) {
 
     cout << "Running the file: '" << filename << "' with a pipeline with W-wide superscalar: " << width <<
