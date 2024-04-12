@@ -79,7 +79,7 @@ void Delete_Address(struct AddressTree *address_tree, unsigned long instruction_
 void Delete_Instruction(struct InstructionQueue *InstructionQueue);
 void Simulate_Cycle(struct Pipeline *Pipeline, int width, int simulating_instruction);
 bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline);
-bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address);
+bool isAddressinID_EX_MEM_WB(struct Pipeline *Pipeline, unsigned long address);
 bool isAddressTree(struct AddressTree *tree, unsigned long address);
 void FreePipeline(struct Pipeline *Pipeline);
 void PrintStatistics(struct Pipeline *Pipeline, int width, int starting_instruction, int simulating_instruction, string filename);

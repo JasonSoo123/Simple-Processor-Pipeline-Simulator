@@ -565,32 +565,30 @@ void ProcessIF(struct Pipeline *Pipeline, int width)
     while ((Pipeline->IF_queue->count != 0) && (Pipeline->ID_queue->count != width))
     {    
         // if you cannot find the the dependency in the pipeline or in the finished address tree
-        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[0])
+        if (!isAddressinID_EX_MEM_WB(Pipeline, Pipeline->IF_queue->head->instruction_dependency[0])
          && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[0])) {
 
             Pipeline->IF_queue->head->instruction_dependency[0] = 0x0; // reset the dependency
         }
 
         // if you cannot find the the dependency in the pipeline or in the finished address tree
-        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[1])
+        if (!isAddressinID_EX_MEM_WB(Pipeline, Pipeline->IF_queue->head->instruction_dependency[1])
          && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[1])) {
 
             Pipeline->IF_queue->head->instruction_dependency[1] = 0x0; // reset the dependency
         }
 
         // if you cannot find the the dependency in the pipeline or in the finished address tree
-        if (!isAddressinPipeline(Pipeline, Pipeline->IF_queue->head->instruction_dependency[2])
+        if (!isAddressinID_EX_MEM_WB(Pipeline, Pipeline->IF_queue->head->instruction_dependency[2])
          && !isAddressTree(Pipeline->finish_address_tree, Pipeline->IF_queue->head->instruction_dependency[2])) {
 
             Pipeline->IF_queue->head->instruction_dependency[2] = 0x0; // reset the dependency
         }
 
-        struct Instruction* newInstruction= NewInstruction(Pipeline->IF_queue->head->instruction_address, 
+        Insert_Queue(Pipeline->ID_queue, NewInstruction(Pipeline->IF_queue->head->instruction_address, 
         Pipeline->IF_queue->head->cycle_inserted, Pipeline->IF_queue->head->instructionType, 
         Pipeline->IF_queue->head->instruction_dependency[0], Pipeline->IF_queue->head->instruction_dependency[1],
-        Pipeline->IF_queue->head->instruction_dependency[2]);
-
-        Insert_Queue(Pipeline->ID_queue,newInstruction);
+        Pipeline->IF_queue->head->instruction_dependency[2]));
         Delete_Instruction(Pipeline->IF_queue);
     }
 }
@@ -633,6 +631,8 @@ void Simulate_Cycle(struct Pipeline *Pipeline, int width, int simulating_instruc
     // while (temp != NULL) {
     //     cout << temp->instruction_address << endl;
     //     cout << temp->instructionType << endl;
+    //     cout << temp->instruction_dependency[0] << endl;
+    //     cout << temp->instruction_dependency[1] << endl;
     //     cout << endl;
     //     temp = temp->next;
     // }
@@ -691,19 +691,10 @@ bool isBranchin_IF_ID_EX(struct Pipeline *Pipeline)
 }
 
 // check if that address is in the pipeline
-bool isAddressinPipeline(struct Pipeline *Pipeline, unsigned long address) {
+bool isAddressinID_EX_MEM_WB(struct Pipeline *Pipeline, unsigned long address) {
 
-    struct Instruction *current = Pipeline->IF_queue->head;
-    while (current != NULL) {
+    struct Instruction *current = Pipeline->ID_queue->head;
 
-        if (current->instruction_address == address) 
-        {
-            return true;
-        }
-        current = current->next;
-    }
-
-    current = Pipeline->ID_queue->head;
     while (current != NULL) {
 
         if (current->instruction_address == address) 

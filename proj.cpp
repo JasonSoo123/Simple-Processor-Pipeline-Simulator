@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
                     (pipeline->EX_queue->count == width) && (pipeline->MEM_queue->count == width) &&
                     (pipeline->WB_queue->count == width)) 
                     {
-                        
+                           
                         Simulate_Cycle(pipeline, width, simulating_instruction);
 
                     }
@@ -249,8 +249,9 @@ int main(int argc, char* argv[])
             }
             infile.close(); 
 
-         
+        
             while (pipeline->finish_count < simulating_instruction) {
+                
                 
                 // if there is a branch that hasnt excuted yet in the pipeline
                 if (isBranchin_IF_ID_EX(pipeline)) {
